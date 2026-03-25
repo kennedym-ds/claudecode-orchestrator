@@ -1,0 +1,11 @@
+{
+  "name": "cc-jama",
+  "version": "0.1.0",
+  "description": "Jama Connect integration for Claude Code — requirements tracing, test coverage mapping, and SDLC data pull.",
+  "author": "kennedym-ds",
+  "repository": "claudecode-orchestrator",
+  "mcpServers": ["cc-jama"],
+  "skills": ["req-tracing", "test-coverage-map"],
+  "agents": ["jama-sync"],
+  "commands": ["jama-trace", "jama-context"]
+}

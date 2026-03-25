@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "cc-jama": {
+      "command": "node",
+      "args": ["mcp/server.js"],
+      "cwd": "plugins/cc-jama",
+      "env": {
+        "JAMA_BASE_URL": "",
+        "JAMA_CLIENT_ID": "",
+        "JAMA_CLIENT_SECRET": ""
+      }
+    }
+  }
+}

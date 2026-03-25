@@ -1,0 +1,10 @@
+{
+  "name": "cc-jira",
+  "displayName": "Jira Integration",
+  "description": "Jira Cloud integration for Claude Code — search, create, update issues, manage sprints, and sync orchestrator plans to Jira stories.",
+  "version": "0.1.0",
+  "author": {
+    "name": "kennedym-ds"
+  },
+  "license": "MIT"
+}

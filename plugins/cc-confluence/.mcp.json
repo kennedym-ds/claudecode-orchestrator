@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "confluence": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp/server.js"],
+      "env": {
+        "CONFLUENCE_BASE_URL": "",
+        "CONFLUENCE_API_TOKEN": "",
+        "CONFLUENCE_USER_EMAIL": ""
+      }
+    }
+  }
+}

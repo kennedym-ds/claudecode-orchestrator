@@ -1,0 +1,9 @@
+﻿{
+  "_comment": "Local overrides - copy to settings.local.json and customize. This file is NOT committed. Add settings.local.json to .gitignore.",
+  "env": {
+    "ORCH_MODEL_HEAVY": "claude-opus-4-6-20260320",
+    "ORCH_MODEL_DEFAULT": "claude-sonnet-4-6-20260320",
+    "ORCH_MODEL_FAST": "claude-haiku-4-5-20250315"
+  },
+  "model": "claude-sonnet-4-6-20260320"
+}

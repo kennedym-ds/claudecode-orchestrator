@@ -1,0 +1,10 @@
+{
+  "//": "Standard profile — recommended balance of quality and cost",
+  "//": "Sonnet handles implementation. Opus for judgment-heavy roles.",
+  "env": {
+    "ORCH_MODEL_HEAVY": "claude-opus-4-6-20260320",
+    "ORCH_MODEL_DEFAULT": "claude-sonnet-4-6-20260320",
+    "ORCH_MODEL_FAST": "claude-haiku-4-5-20250315"
+  },
+  "model": "claude-sonnet-4-6-20260320"
+}

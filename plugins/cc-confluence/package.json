@@ -1,0 +1,13 @@
+{
+  "name": "cc-confluence",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Confluence Cloud MCP server for Claude Code",
+  "main": "mcp/server.js",
+  "scripts": {
+    "start": "node mcp/server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}
