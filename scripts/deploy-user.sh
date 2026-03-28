@@ -136,13 +136,21 @@ const absHook = (script) => ({ type: 'command', command: 'node ' + path.join(hoo
 settings.hooks = {
   SessionStart: [{ hooks: [{ ...absHook('session-start.js'), once: true }] }],
   UserPromptSubmit: [{ hooks: [absHook('secret-detector.js')] }],
-  PreToolUse: [{ matcher: 'Bash', hooks: [absHook('pre-bash-safety.js')] }],
-  PostToolUse: [{ matcher: 'Edit|Write', hooks: [{ ...absHook('post-edit-validate.js'), async: true }] }],
+  PreToolUse: [{ matcher: 'Bash', hooks: [absHook('pre-bash-safety.js'), absHook('deploy-guard.js')] }],
+  PostToolUse: [{ matcher: 'Edit|Write', hooks: [
+    { ...absHook('post-edit-validate.js'), async: true },
+    { ...absHook('dependency-scanner.js'), if: 'Edit(*package*.json)', async: true },
+    { ...absHook('dependency-scanner.js'), if: 'Write(*package*.json)', async: true },
+    { ...absHook('compliance-logger.js'), async: true }
+  ]}],
   SubagentStart: [{ hooks: [absHook('subagent-start-log.js')] }],
   SubagentStop: [{ hooks: [absHook('subagent-stop-gate.js')] }],
   PreCompact: [{ hooks: [absHook('pre-compact.js')] }],
   PostCompact: [{ hooks: [absHook('post-compact.js')] }],
-  Stop: [{ hooks: [absHook('stop-summary.js')] }],
+  Stop: [{ hooks: [absHook('stop-summary.js'), absHook('pr-gate.js')] }],
+  StopFailure: [{ hooks: [absHook('stop-failure.js')] }],
+  WorktreeCreate: [{ hooks: [absHook('worktree-create.js')] }],
+  WorktreeRemove: [{ hooks: [absHook('worktree-remove.js')] }],
   SessionEnd: [{ hooks: [absHook('session-end.js')] }],
 };
 

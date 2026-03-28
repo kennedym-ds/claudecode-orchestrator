@@ -2,7 +2,7 @@
 name: deploy-engineer
 description: Deployment readiness and CI/CD management — validates build pipelines, checks release criteria, and manages environment configuration. Use when preparing deployments, checking CI/CD, or validating release readiness.
 model: haiku
-permissionMode: default
+permissionMode: plan
 maxTurns: 20
 memory: project
 effort: low

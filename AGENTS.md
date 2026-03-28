@@ -13,7 +13,7 @@ Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 54 skills
 .claude-plugin/
   marketplace.json        → Plugin catalog (6 plugins)
 plugins/
-  cc-sdlc-core/           → Orchestration engine (19 agents, 18 skills, 22 commands, 14 hooks)
+  cc-sdlc-core/           → Orchestration engine (19 agents, 18 skills, 22 commands, 17 hooks)
   cc-sdlc-standards/      → 20 language + 7 domain coding standards
   cc-github/              → GitHub PR/issue workflows via MCP
   cc-jira/                → Jira integration via MCP
@@ -184,6 +184,9 @@ Hooks are configured in `.claude/settings.json` (for standalone repo usage) and 
 | ✓ PostCompact | — | post-compact.js | Restore state after compaction |
 | ✓ Stop | — | stop-summary.js | Update session timestamp |
 | ✓ Stop | — | pr-gate.js | Generate PR readiness summary |
+| ✓ StopFailure | — | stop-failure.js | Log API errors and failed sessions |
+| ✓ WorktreeCreate | — | worktree-create.js | Copy context to new worktree |
+| ✓ WorktreeRemove | — | worktree-remove.js | Log worktree removal |
 | ✓ SessionEnd | — | session-end.js | Archive session state |
 
 **Hook input schema:** All hooks receive JSON on stdin. Key fields use snake_case:

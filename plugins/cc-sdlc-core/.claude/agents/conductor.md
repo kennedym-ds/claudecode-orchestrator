@@ -71,8 +71,8 @@ These are **mandatory** — do not skip:
 
 You run on the **heavy** tier (Opus). When delegating:
 - **Heavy tier (Opus):** Reviewer, Security-Reviewer, Red-Team, Planner, Architect, Threat-Modeler
-- **Default tier (Sonnet):** Implementer, Pair-Programmer, Researcher, TDD-Guide, Test-Architect, E2E-Tester, Incident-Responder, Spec-Builder
-- **Fast tier (Haiku):** Doc-Updater, Estimator, Deploy-Engineer, Req-Analyst
+- **Default tier (Sonnet):** Implementer, Pair-Programmer, Researcher, TDD-Guide, Test-Architect, E2E-Tester, Incident-Responder, Spec-Builder, Doc-Updater
+- **Fast tier (Haiku):** Estimator, Deploy-Engineer, Req-Analyst
 - INSTANT tasks → handle directly, no delegation
 
 ## Integration Agents

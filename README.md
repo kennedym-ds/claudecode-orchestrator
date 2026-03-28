@@ -10,7 +10,7 @@ A collection of Claude Code plugins that orchestrate development workflows from 
 - **24 specialized agents** — conductor, planner, architect, implementer, reviewer, threat-modeler, and more
 - **54 skills** — 20 language standards, 7 domain overlays, 18 core workflow skills, 9 integration skills
 - **30 slash commands** — `/conduct`, `/plan`, `/implement`, `/review`, `/spec`, `/threat-model`, and more
-- **14 hook scripts** — secret detection, bash safety, deploy guard, compliance logging
+- **17 hook scripts** — secret detection, bash safety, deploy guard, compliance logging
 - **Complexity-based routing** — INSTANT → STANDARD → DEEP → ULTRADEEP
 - **3 model tiers** — Opus (judgment), Sonnet (execution), Haiku (triage)
 
@@ -40,7 +40,7 @@ claude --agent conductor
 
 | Plugin | Description | Assets |
 |--------|-------------|--------|
-| **cc-sdlc-core** | SDLC orchestration engine | 19 agents, 18 skills, 22 commands, 6 rules, 14 hooks |
+| **cc-sdlc-core** | SDLC orchestration engine | 19 agents, 18 skills, 22 commands, 6 rules, 17 hooks |
 | **cc-sdlc-standards** | Universal coding standards | 20 language skills + 7 domain overlays |
 | **cc-github** | GitHub integration | 2 agents, 2 commands, 2 skills + GitHub MCP |
 | **cc-jira** | Jira integration | 1 agent, 2 commands, 2 skills + Jira MCP |
@@ -149,7 +149,7 @@ plugins/
     .claude/skills/          → 18 skills
     .claude/commands/        → 22 commands
     .claude/rules/           → 6 guardrails
-    hooks/                   → 14 hook scripts
+    hooks/                   → 17 hook scripts
   cc-sdlc-standards/         → Coding standards
     .claude/skills/          → 20 languages + 7 domains
   cc-github/                 → GitHub integration

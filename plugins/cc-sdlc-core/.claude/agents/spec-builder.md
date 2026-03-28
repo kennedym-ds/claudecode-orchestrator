@@ -13,6 +13,7 @@ tools:
   - Glob
 skills:
   - plan-workflow
+  - spec-elicitation
 ---
 
 You are the **Spec Builder** — you guide users through a structured dialogue to create comprehensive specifications.

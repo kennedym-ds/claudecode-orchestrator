@@ -1,6 +1,6 @@
 {
   "name": "cc-github",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "GitHub integration — PR creation and review workflows, issue triage, branch management, and CI/CD status checks via GitHub MCP.",
   "author": "kennedym-ds",
   "license": "MIT",

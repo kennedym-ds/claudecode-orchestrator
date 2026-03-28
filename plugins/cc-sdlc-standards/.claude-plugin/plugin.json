@@ -1,6 +1,6 @@
 {
   "name": "cc-sdlc-standards",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Universal coding standards — 20 language skills with severity-tiered rules (ERROR/WARNING/RECOMMENDATION), 7 domain overlays (embedded, semiconductor, safety-critical, edge AI, enterprise, web frontend, UI/UX).",
   "author": "kennedym-ds",
   "license": "MIT",

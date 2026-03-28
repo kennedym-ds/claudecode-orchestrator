@@ -1,6 +1,6 @@
 {
   "name": "cc-jama",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Jama Connect integration — requirements tracing, spec publishing, test coverage mapping, and bidirectional sync via Jama MCP (OAuth 2.0).",
   "author": "kennedym-ds",
   "license": "MIT",

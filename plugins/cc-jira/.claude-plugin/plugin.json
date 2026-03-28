@@ -1,6 +1,6 @@
 {
   "name": "cc-jira",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Jira integration — issue context enrichment, sprint planning, plan-to-stories generation, and bidirectional sync via Jira MCP.",
   "author": "kennedym-ds",
   "license": "MIT",

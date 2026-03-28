@@ -1,6 +1,6 @@
 {
   "name": "cc-sdlc",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "CC-SDLC marketplace — install individual plugins from this collection for SDLC lifecycle orchestration, coding standards, and tool integrations.",
   "author": "kennedym-ds",
   "license": "MIT",

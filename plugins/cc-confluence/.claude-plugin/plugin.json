@@ -1,6 +1,6 @@
 {
   "name": "cc-confluence",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Confluence integration — ADR publishing, knowledge search, runbook sync, and page management via Confluence MCP.",
   "author": "kennedym-ds",
   "license": "MIT",
