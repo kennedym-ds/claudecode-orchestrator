@@ -1,15 +1,9 @@
 {
-  "name": "claudecode-orchestrator",
+  "name": "cc-sdlc",
   "version": "1.0.0",
-  "description": "SDLC lifecycle orchestration for Claude Code — 9 focused agents, hook-driven quality gates, complexity-based routing with configurable model tiers",
+  "description": "CC-SDLC marketplace — install individual plugins from this collection for SDLC lifecycle orchestration, coding standards, and tool integrations.",
   "author": "kennedym-ds",
   "license": "MIT",
-  "components": {
-    "agents": ".claude/agents/",
-    "skills": ".claude/skills/",
-    "commands": ".claude/commands/"
-  },
-  "settings": {
-    "defaultAgent": "conductor"
-  }
+  "marketplace": true,
+  "repository": "https://github.com/kennedym-ds/cc-sdlc"
 }

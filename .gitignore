@@ -1,8 +1,16 @@
 # .gitignore
 .claude/settings.local.json
-artifacts/sessions/
-artifacts/memory/activeContext.md
+artifacts/
 *.log
 node_modules/
 .DS_Store
 Thumbs.db
+*.swp
+*.swo
+*~
+
+# Plugin local config
+.claude/*.local.md
+
+# Installer temp files
+installer/tmp/

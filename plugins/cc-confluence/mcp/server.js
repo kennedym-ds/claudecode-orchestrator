@@ -228,11 +228,21 @@ async function handleTool(name, args) {
     }
 
     case 'update_page': {
+      // Fetch existing page to preserve title when not provided
+      let title = args.title;
+      if (!title) {
+        const existing = await confluenceFetch('GET',
+          `/wiki/rest/api/content/${encodeURIComponent(args.page_id)}?expand=version`
+        );
+        title = existing.title;
+      }
+
       const payload = {
         version: {
           number: args.version_number + 1,
           message: args.version_message || 'Updated via Claude Code cc-confluence plugin',
         },
+        title,
         type: 'page',
         body: {
           storage: {
@@ -241,7 +251,6 @@ async function handleTool(name, args) {
           },
         },
       };
-      if (args.title) payload.title = args.title;
 
       const result = await confluenceFetch('PUT',
         `/wiki/rest/api/content/${encodeURIComponent(args.page_id)}`, payload

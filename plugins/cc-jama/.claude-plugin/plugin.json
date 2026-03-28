@@ -1,11 +1,24 @@
 {
   "name": "cc-jama",
-  "version": "0.1.0",
-  "description": "Jama Connect integration for Claude Code — requirements tracing, test coverage mapping, and SDLC data pull.",
+  "version": "1.0.0",
+  "description": "Jama Connect integration — requirements tracing, spec publishing, test coverage mapping, and bidirectional sync via Jama MCP (OAuth 2.0).",
   "author": "kennedym-ds",
-  "repository": "claudecode-orchestrator",
-  "mcpServers": ["cc-jama"],
-  "skills": ["req-tracing", "test-coverage-map"],
-  "agents": ["jama-sync"],
-  "commands": ["jama-trace", "jama-context"]
+  "license": "MIT",
+  "components": {
+    "agents": ".claude/agents/",
+    "skills": ".claude/skills/",
+    "commands": ".claude/commands/"
+  },
+  "mcpServers": {
+    "jama": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "JAMA_BASE_URL": "${JAMA_BASE_URL}",
+        "JAMA_CLIENT_ID": "${JAMA_CLIENT_ID}",
+        "JAMA_CLIENT_SECRET": "${JAMA_CLIENT_SECRET}"
+      }
+    }
+  }
 }

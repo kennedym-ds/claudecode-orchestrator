@@ -8,7 +8,6 @@
  * Auth: API token via environment variables (JIRA_BASE_URL, JIRA_USER_EMAIL, JIRA_API_TOKEN)
  * Docs: https://developer.atlassian.com/cloud/jira/platform/rest/v3/
  */
-const { Server } = require('@anthropic-ai/mcp');
 const https = require('https');
 const http = require('http');
 

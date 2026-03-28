@@ -1,6 +1,8 @@
-# Claude Code Orchestrator
+# cc-sdlc — Project Playbook
 
-> SDLC lifecycle orchestration for Claude Code CLI. 9 focused agents, hook-driven quality gates, complexity-based routing.
+> **Status:** Active · **Version:** 2.0.0
+
+Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 54 skills, 30 commands, hook-driven quality gates, complexity-based routing.
 
 ## Persona
 
@@ -29,11 +31,11 @@ Three configurable tiers mapped to task complexity. Override in `.claude/setting
 
 | Tier | Default Model | Role | Used By |
 |------|--------------|------|--------|
-| **heavy** | claude-opus-4-6-20260320 | Judgment, review, planning | conductor, planner, reviewer, security-reviewer, red-team |
-| **default** | claude-sonnet-4-6-20260320 | Implementation, research, docs | implementer, researcher, tdd-guide, doc-updater |
-| **fast** | claude-haiku-4-5-20250315 | Triage, routing, simple tasks | Hooks with `prompt` type, INSTANT routing |
+| **heavy** | claude-opus-4-6-20260320 | Judgment, review, planning | conductor, planner, architect, reviewer, security-reviewer, threat-modeler, red-team |
+| **default** | claude-sonnet-4-6-20260320 | Implementation, research, docs | implementer, researcher, spec-builder, pair-programmer, test-architect, tdd-guide, e2e-tester, incident-responder, doc-updater |
+| **fast** | claude-haiku-4-5-20250315 | Triage, routing, simple tasks | req-analyst, estimator, deploy-engineer, INSTANT routing |
 
-Switch models by editing `models` in `.claude/settings.json`. Agent frontmatter references tier names, settings resolve to model IDs.
+Switch models by editing `env` in `.claude/settings.json`. Agent frontmatter references tier names (`opus`, `sonnet`, `haiku`), settings resolve to model IDs.
 
 ## Routing Table
 
@@ -46,31 +48,42 @@ Switch models by editing `models` in `.claude/settings.json`. Agent frontmatter 
 
 ## Agents
 
-9 subagents in `.claude/agents/`: conductor, planner, implementer, reviewer, researcher, security-reviewer, tdd-guide, red-team, doc-updater.
+24 agents across 6 plugins. 19 core SDLC agents in `plugins/cc-sdlc-core/`, 5 integration agents in cc-github, cc-jira, cc-confluence, cc-jama.
 
 **Key capabilities:** Agents support `memory: project` for persistent learning across sessions, `effort` levels (low/medium/high/max), `isolation: worktree` for git-isolated work, and scoped `hooks` in frontmatter.
+
+## Commands
+
+30 commands across 6 plugins. Key entry points: `/conduct`, `/plan`, `/implement`, `/review`, `/research`, `/secure`, `/test`, `/architect`, `/spec`, `/estimate`, `/pair`, `/threat-model`, `/red-team`, `/incident`.
+
+## Skills
+
+54 skills: 18 core workflow skills, 20 language coding standards, 7 domain overlays, 9 integration skills.
+
+## Rules
+
+Behavioral guardrails in `plugins/cc-sdlc-core/rules/`. Path-scoped where applicable.
+
+## Hooks
+
+14 hook scripts providing deterministic automation. Zero context cost.
+
+**Events handled:** SessionStart, UserPromptSubmit, PreToolUse (Bash — safety + deploy guard), PostToolUse (Edit|Write — lint, dependency scan, compliance log), SubagentStart, SubagentStop, PreCompact, PostCompact, Stop (summary + PR gate), SessionEnd.
+
+Hook scripts use `$CLAUDE_PLUGIN_ROOT` for portable path resolution and `CLAUDE_ENV_FILE` for session env vars.
 
 ## Artifacts
 
 Session outputs persist to `artifacts/`. See `artifacts/memory/activeContext.md` for current state.
 
-## Commands
+Initialize with: `bash scripts/init-artifacts.sh` or `pwsh -File scripts/init-artifacts.ps1`
 
-See `.claude/commands/` for all slash commands. Key entry points: `/conduct`, `/plan`, `/implement`, `/review`, `/research`, `/secure`, `/test`, `/audit`.
+## Validation
 
-## Rules
-
-Behavioral guardrails in `.claude/rules/`. Path-scoped where applicable.
-
-## Hooks
-
-Deterministic automation via hooks in `.claude/settings.json` (standalone) and `hooks/hooks.json` (plugin). Zero context cost.
-
-**Events handled:** SessionStart, UserPromptSubmit, PreToolUse (Bash), PostToolUse (Edit|Write), SubagentStart, SubagentStop, PreCompact, PostCompact, Stop, SessionEnd.
-
-**Available tools in hooks:** Bash, Edit, Write, Read, Glob, Grep, Agent, WebFetch, WebSearch.
-
-Hook scripts use `CLAUDE_PROJECT_DIR` for path resolution and `CLAUDE_ENV_FILE` for session env vars.
+```bash
+bash scripts/validate-assets.sh
+pwsh -File scripts/validate-assets.ps1
+```
 
 ## Cost Management
 

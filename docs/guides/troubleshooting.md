@@ -64,10 +64,10 @@ node -e "JSON.parse(require('fs').readFileSync('.claude/settings.json','utf8'));
 
 **Fix:**
 ```bash
-# Install dependencies
-cd plugins/cc-jira && npm install
-cd plugins/cc-confluence && npm install
-cd plugins/cc-jama && npm install
+# Install dependencies (each MCP server has its own package.json)
+cd plugins/cc-jira/mcp && npm install && cd -
+cd plugins/cc-confluence/mcp && npm install && cd -
+cd plugins/cc-jama/mcp && npm install && cd -
 
 # Check env vars are set
 echo $JIRA_BASE_URL          # macOS/Linux
@@ -117,12 +117,18 @@ export JAMA_BASE_URL="https://your-instance.jamacloud.com"
 cat .claude/settings.json | grep -A5 "hooks"
 
 # Verify hook scripts exist
+# Source repo checkout:
+ls plugins/cc-sdlc-core/hooks/scripts/
+
+# Installed project/user layout:
 ls hooks/scripts/
 
 # Test a hook manually
-echo '{"prompt":"test"}' | node hooks/scripts/secret-detector.js
+echo '{"prompt":"test"}' | node plugins/cc-sdlc-core/hooks/scripts/secret-detector.js
 # Should exit 0 (no secrets found)
 ```
+
+**Path convention note:** In this repository, `.claude/settings.json` uses repo-relative paths such as `plugins/cc-sdlc-core/hooks/scripts/session-start.js` so hooks run directly from the source tree. The packaged plugin file `plugins/cc-sdlc-core/hooks/hooks.json` uses `${CLAUDE_PLUGIN_ROOT}/hooks/scripts/...` so the same hooks resolve correctly after installation.
 
 ### Hook blocks a legitimate command
 

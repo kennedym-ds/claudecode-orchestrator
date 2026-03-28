@@ -1,15 +1,40 @@
 {
-  "name": "claudecode-orchestrator",
-  "displayName": "Claude Code Orchestrator",
-  "description": "SDLC lifecycle orchestration with 9 focused agents, configurable model tiers (Opus/Sonnet/Haiku), hook-driven quality gates, and complexity-based routing.",
+  "name": "cc-sdlc",
+  "displayName": "CC-SDLC — Full Lifecycle Orchestration",
+  "description": "Multi-plugin SDLC suite: lifecycle orchestration, universal coding standards, and integrations with GitHub, Jira, Confluence, and Jama.",
   "version": "1.0.0",
-  "category": "Workflows",
-  "tags": [
-    "orchestration",
-    "sdlc",
-    "tdd",
-    "code-review",
-    "security",
-    "multi-agent"
+  "author": "kennedym-ds",
+  "repository": "https://github.com/kennedym-ds/cc-sdlc",
+  "plugins": [
+    {
+      "name": "cc-sdlc-core",
+      "path": "plugins/cc-sdlc-core",
+      "description": "SDLC lifecycle orchestration — 19 agents, complexity routing, hooks, safety system"
+    },
+    {
+      "name": "cc-sdlc-standards",
+      "path": "plugins/cc-sdlc-standards",
+      "description": "Universal coding standards — 20 languages, 7 domain profiles, severity-tiered rules"
+    },
+    {
+      "name": "cc-github",
+      "path": "plugins/cc-github",
+      "description": "GitHub integration — PR workflows, code review, issue management"
+    },
+    {
+      "name": "cc-jira",
+      "path": "plugins/cc-jira",
+      "description": "Jira integration — issue context, sprint planning, story generation"
+    },
+    {
+      "name": "cc-confluence",
+      "path": "plugins/cc-confluence",
+      "description": "Confluence integration — ADR publishing, knowledge search, runbook sync"
+    },
+    {
+      "name": "cc-jama",
+      "path": "plugins/cc-jama",
+      "description": "Jama integration — requirements tracing, spec publishing, test coverage mapping"
+    }
   ]
 }

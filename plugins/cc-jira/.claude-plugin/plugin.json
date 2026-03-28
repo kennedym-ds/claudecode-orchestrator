@@ -1,10 +1,24 @@
 {
   "name": "cc-jira",
-  "displayName": "Jira Integration",
-  "description": "Jira Cloud integration for Claude Code — search, create, update issues, manage sprints, and sync orchestrator plans to Jira stories.",
-  "version": "0.1.0",
-  "author": {
-    "name": "kennedym-ds"
+  "version": "1.0.0",
+  "description": "Jira integration — issue context enrichment, sprint planning, plan-to-stories generation, and bidirectional sync via Jira MCP.",
+  "author": "kennedym-ds",
+  "license": "MIT",
+  "components": {
+    "agents": ".claude/agents/",
+    "skills": ".claude/skills/",
+    "commands": ".claude/commands/"
   },
-  "license": "MIT"
+  "mcpServers": {
+    "jira": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "JIRA_BASE_URL": "${JIRA_BASE_URL}",
+        "JIRA_USER_EMAIL": "${JIRA_USER_EMAIL}",
+        "JIRA_API_TOKEN": "${JIRA_API_TOKEN}"
+      }
+    }
+  }
 }

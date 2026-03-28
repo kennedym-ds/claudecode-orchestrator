@@ -1,451 +1,177 @@
 <#
 .SYNOPSIS
-    Deploy orchestrator assets to user-level ~/.claude/ folder.
-.DESCRIPTION
-    Copies or symlinks agents, skills, commands, rules, and hooks to the
-    user's ~/.claude/ directory so they are available in all Claude Code
-    projects. Settings are merged (not overwritten).
+    Deploy cc-sdlc assets to ~/.claude/ for global availability.
 .PARAMETER Mode
-    Copy or Symlink. Copy is portable; Symlink auto-updates but needs
-    elevated privileges on Windows.
+    'copy' (default) or 'symlink'.
 .PARAMETER DryRun
-    Preview what would change without writing anything.
-.PARAMETER SkipHooks
-    Skip hook script deployment and settings hook entries.
-.PARAMETER SkipSettings
-    Skip settings.json merge entirely.
-.PARAMETER Force
-    Overwrite existing files without prompting.
+    Preview without deploying.
 .PARAMETER Uninstall
-    Remove previously deployed orchestrator assets.
-.EXAMPLE
-    pwsh -File scripts/deploy-user.ps1
-    pwsh -File scripts/deploy-user.ps1 -Mode Symlink
-    pwsh -File scripts/deploy-user.ps1 -DryRun
-    pwsh -File scripts/deploy-user.ps1 -Uninstall
+    Remove previously deployed assets.
 #>
-[CmdletBinding()]
 param(
-    [ValidateSet('Copy', 'Symlink')]
-    [string]$Mode = 'Copy',
+    [ValidateSet('copy', 'symlink')]
+    [string]$Mode = 'copy',
     [switch]$DryRun,
-    [switch]$SkipHooks,
-    [switch]$SkipSettings,
-    [switch]$Force,
     [switch]$Uninstall
 )
 
+Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$RepoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
-$UserClaude = Join-Path $env:USERPROFILE ".claude"
-$ManifestFile = Join-Path $UserClaude ".orchestrator-manifest.json"
-$BackupDir = Join-Path $UserClaude ".orchestrator-backup"
-$Timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
 
-# --- Logging ---
-function Write-Log { param([string]$Message, [string]$Level = 'INFO')
-    $prefix = switch ($Level) {
-        'INFO'  { '[deploy]' }
-        'WARN'  { '[deploy] WARNING:' }
-        'ERROR' { '[deploy] ERROR:' }
-        'DRY'   { '[deploy] (dry-run)' }
-    }
-    if ($Level -eq 'ERROR') { Write-Error "$prefix $Message" }
-    elseif ($Level -eq 'WARN') { Write-Warning "$prefix $Message" }
-    else { Write-Host "$prefix $Message" }
-}
+$RepoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Definition)
+$Target = Join-Path $env:USERPROFILE '.claude'
+$Manifest = Join-Path $Target '.cc-sdlc-manifest.json'
 
-function Write-Action { param([string]$Message)
-    if ($DryRun) { Write-Log $Message -Level 'DRY' }
-    else { Write-Log $Message }
-}
-
-# --- Manifest tracking ---
-# Tracks which files were deployed so Uninstall knows what to remove
-function Get-Manifest {
-    if (Test-Path $ManifestFile) {
-        return (Get-Content $ManifestFile -Raw | ConvertFrom-Json)
-    }
-    return @{ version = '1.0'; deployedAt = ''; mode = ''; files = @(); repoRoot = '' }
-}
-
-function Save-Manifest { param($Manifest)
-    if (-not $DryRun) {
-        $Manifest | ConvertTo-Json -Depth 10 | Set-Content $ManifestFile -Encoding UTF8
-    }
-}
-
-# --- Backup ---
-function Backup-File { param([string]$Path)
-    if ((Test-Path $Path) -and -not $DryRun) {
-        $backupPath = Join-Path $BackupDir $Timestamp
-        New-Item -ItemType Directory -Path $backupPath -Force | Out-Null
-        $relativePath = $Path.Replace($UserClaude, '').TrimStart('\', '/')
-        $backupTarget = Join-Path $backupPath $relativePath
-        $backupTargetDir = Split-Path -Parent $backupTarget
-        New-Item -ItemType Directory -Path $backupTargetDir -Force | Out-Null
-        Copy-Item -Path $Path -Destination $backupTarget -Force
-    }
-}
-
-# --- Deploy helpers ---
-function Deploy-Directory {
-    param(
-        [string]$SourceDir,
-        [string]$TargetDir,
-        [string]$Label,
-        [ref]$FileList
-    )
-
-    if (-not (Test-Path $SourceDir)) {
-        Write-Log "Source not found: $SourceDir" -Level 'WARN'
+function Deploy-File {
+    param([string]$Src, [string]$Dst)
+    $dir = Split-Path $Dst -Parent
+    if ($DryRun) {
+        Write-Host "[dry-run] $Src -> $Dst"
         return
     }
-
-    $items = Get-ChildItem -Path $SourceDir -Recurse -File
-    $count = 0
-
-    foreach ($item in $items) {
-        $relativePath = $item.FullName.Substring($SourceDir.Length).TrimStart('\', '/')
-        $targetPath = Join-Path $TargetDir $relativePath
-        $targetDir = Split-Path -Parent $targetPath
-
-        if (-not $DryRun) {
-            New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
-        }
-
-        if (Test-Path $targetPath) {
-            Backup-File -Path $targetPath
-        }
-
-        Write-Action "  $relativePath"
-
-        if (-not $DryRun) {
-            if ($Mode -eq 'Symlink') {
-                if (Test-Path $targetPath) { Remove-Item $targetPath -Force }
-                New-Item -ItemType SymbolicLink -Path $targetPath -Target $item.FullName -Force | Out-Null
-            } else {
-                Copy-Item -Path $item.FullName -Destination $targetPath -Force
-            }
-        }
-
-        $FileList.Value += $targetPath
-        $count++
-    }
-
-    Write-Action "${Label}: $count files ($Mode)"
-}
-
-function Deploy-Hooks {
-    param([ref]$FileList)
-
-    $sourceScripts = Join-Path $RepoRoot "hooks\scripts"
-    $targetScripts = Join-Path $UserClaude "hooks\scripts"
-
-    if (-not (Test-Path $sourceScripts)) {
-        Write-Log "Hook scripts not found: $sourceScripts" -Level 'WARN'
-        return
-    }
-
-    # Deploy hook scripts
-    $items = Get-ChildItem -Path $sourceScripts -File -Filter "*.js"
-    $count = 0
-
-    foreach ($item in $items) {
-        $targetPath = Join-Path $targetScripts $item.Name
-        $targetDir = Split-Path -Parent $targetPath
-
-        if (-not $DryRun) {
-            New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
-        }
-
-        if (Test-Path $targetPath) {
-            Backup-File -Path $targetPath
-        }
-
-        Write-Action "  hooks/scripts/$($item.Name)"
-
-        if (-not $DryRun) {
-            if ($Mode -eq 'Symlink') {
-                if (Test-Path $targetPath) { Remove-Item $targetPath -Force }
-                New-Item -ItemType SymbolicLink -Path $targetPath -Target $item.FullName -Force | Out-Null
-            } else {
-                Copy-Item -Path $item.FullName -Destination $targetPath -Force
-            }
-        }
-
-        $FileList.Value += $targetPath
-        $count++
-    }
-
-    Write-Action "Hooks: $count script files ($Mode)"
-}
-
-function Get-HooksWithAbsolutePaths {
-    # Read the repo's settings.json hooks and rewrite paths to absolute user-level paths
-    $settingsPath = Join-Path $RepoRoot ".claude\settings.json"
-    if (-not (Test-Path $settingsPath)) { return $null }
-
-    $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
-    if (-not $settings.hooks) { return $null }
-
-    $hooksScriptsDir = Join-Path $UserClaude "hooks\scripts"
-    # Normalize to forward slashes for cross-platform compat
-    $hooksScriptsDir = $hooksScriptsDir.Replace('\', '/')
-
-    $hooksJson = $settings.hooks | ConvertTo-Json -Depth 10
-    # Rewrite relative hook paths to absolute user-level paths
-    $hooksJson = $hooksJson -replace 'node hooks/scripts/', "node $hooksScriptsDir/"
-    $hooksJson = $hooksJson -replace 'bash hooks/scripts/', "bash $hooksScriptsDir/"
-
-    return ($hooksJson | ConvertFrom-Json)
-}
-
-function Merge-Settings {
-    param([ref]$FileList)
-
-    $userSettingsPath = Join-Path $UserClaude "settings.json"
-    $repoSettingsPath = Join-Path $RepoRoot ".claude\settings.json"
-
-    if (-not (Test-Path $repoSettingsPath)) {
-        Write-Log "Repo settings not found" -Level 'WARN'
-        return
-    }
-
-    $repoSettings = Get-Content $repoSettingsPath -Raw | ConvertFrom-Json
-
-    # Start with existing user settings or empty object
-    if (Test-Path $userSettingsPath) {
-        Backup-File -Path $userSettingsPath
-        $userSettings = Get-Content $userSettingsPath -Raw | ConvertFrom-Json
-        Write-Action "Merging into existing user settings.json"
+    if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+    if ($Mode -eq 'symlink') {
+        New-Item -ItemType SymbolicLink -Path $Dst -Target $Src -Force | Out-Null
     } else {
-        $userSettings = [PSCustomObject]@{}
-        Write-Action "Creating new user settings.json"
+        Copy-Item -Path $Src -Destination $Dst -Force
     }
-
-    # --- Merge env vars ---
-    if ($repoSettings.env) {
-        if (-not $userSettings.env) {
-            $userSettings | Add-Member -NotePropertyName 'env' -NotePropertyValue ([PSCustomObject]@{}) -Force
-        }
-        foreach ($prop in $repoSettings.env.PSObject.Properties) {
-            if (-not $userSettings.env.PSObject.Properties[$prop.Name]) {
-                $userSettings.env | Add-Member -NotePropertyName $prop.Name -NotePropertyValue $prop.Value -Force
-                Write-Action "  Added env: $($prop.Name)=$($prop.Value)"
-            } else {
-                Write-Action "  Skipped env: $($prop.Name) (already set)"
-            }
-        }
-    }
-
-    # --- Merge permissions ---
-    if ($repoSettings.permissions) {
-        if (-not $userSettings.permissions) {
-            $userSettings | Add-Member -NotePropertyName 'permissions' -NotePropertyValue ([PSCustomObject]@{}) -Force
-        }
-        foreach ($level in @('allow', 'ask', 'deny')) {
-            $repoPerms = $repoSettings.permissions.$level
-            if (-not $repoPerms) { continue }
-
-            if (-not $userSettings.permissions.$level) {
-                $userSettings.permissions | Add-Member -NotePropertyName $level -NotePropertyValue @() -Force
-            }
-
-            $existing = @($userSettings.permissions.$level)
-            $added = 0
-            foreach ($perm in $repoPerms) {
-                if ($perm -notin $existing) {
-                    $existing += $perm
-                    $added++
-                }
-            }
-            $userSettings.permissions.$level = $existing
-            if ($added -gt 0) {
-                Write-Action "  Added $added permissions to '$level'"
-            }
-        }
-    }
-
-    # --- Merge model (only if not set) ---
-    if ($repoSettings.model -and -not $userSettings.model) {
-        $userSettings | Add-Member -NotePropertyName 'model' -NotePropertyValue $repoSettings.model -Force
-        Write-Action "  Set default model: $($repoSettings.model)"
-    }
-
-    # --- Merge hooks (rewritten to absolute paths) ---
-    if (-not $SkipHooks) {
-        $absHooks = Get-HooksWithAbsolutePaths
-        if ($absHooks) {
-            $userSettings | Add-Member -NotePropertyName 'hooks' -NotePropertyValue $absHooks -Force
-            Write-Action "  Deployed hooks with absolute paths"
-        }
-    }
-
-    # Write merged settings
-    if (-not $DryRun) {
-        $userSettings | ConvertTo-Json -Depth 20 | Set-Content $userSettingsPath -Encoding UTF8
-    }
-
-    $FileList.Value += $userSettingsPath
 }
-
-# --- Uninstall ---
-function Invoke-Uninstall {
-    Write-Log "Uninstalling orchestrator assets from $UserClaude"
-
-    $manifest = Get-Manifest
-    if (-not $manifest.files -or $manifest.files.Count -eq 0) {
-        Write-Log "No manifest found. Nothing to uninstall." -Level 'WARN'
-        Write-Log "Manual cleanup: remove agents, skills, commands, rules, hooks from $UserClaude"
-        return
-    }
-
-    $removed = 0
-    foreach ($file in $manifest.files) {
-        if (Test-Path $file) {
-            if ($DryRun) {
-                Write-Action "  Would remove: $file"
-            } else {
-                Remove-Item $file -Force
-                $removed++
-            }
-        }
-    }
-
-    # Clean up empty directories
-    foreach ($subdir in @('agents', 'skills', 'commands', 'rules', 'hooks\scripts')) {
-        $dirPath = Join-Path $UserClaude $subdir
-        if ((Test-Path $dirPath) -and (Get-ChildItem $dirPath -Force | Measure-Object).Count -eq 0) {
-            if (-not $DryRun) { Remove-Item $dirPath -Recurse -Force }
-            Write-Action "  Removed empty directory: $subdir"
-        }
-    }
-
-    # Remove manifest
-    if (-not $DryRun -and (Test-Path $ManifestFile)) {
-        Remove-Item $ManifestFile -Force
-    }
-
-    Write-Log "Removed $removed files"
-
-    # Restore settings backup
-    if (Test-Path $BackupDir) {
-        $latestBackup = Get-ChildItem $BackupDir -Directory | Sort-Object Name -Descending | Select-Object -First 1
-        if ($latestBackup) {
-            $backupSettings = Join-Path $latestBackup.FullName "settings.json"
-            if (Test-Path $backupSettings) {
-                $targetSettings = Join-Path $UserClaude "settings.json"
-                if (-not $DryRun) {
-                    Copy-Item $backupSettings -Destination $targetSettings -Force
-                }
-                Write-Log "Restored settings.json from backup"
-            }
-        }
-    }
-
-    Write-Log "Uninstall complete. Backups preserved in $BackupDir"
-}
-
-# ============================================================
-# Main
-# ============================================================
-
-Write-Log "Claude Code Orchestrator - User Deployment"
-Write-Log "Repository: $RepoRoot"
-Write-Log "Target:     $UserClaude"
-Write-Log "Mode:       $Mode"
-if ($DryRun) { Write-Log "DRY RUN - no files will be modified" -Level 'WARN' }
-Write-Host ""
 
 if ($Uninstall) {
-    Invoke-Uninstall
-    exit 0
+    if (Test-Path $Manifest) {
+        Write-Host "Removing deployed cc-sdlc assets..."
+        $manifest = Get-Content $Manifest -Raw | ConvertFrom-Json
+        foreach ($file in $manifest.files) {
+            if (Test-Path $file) {
+                Remove-Item $file -Force
+                Write-Host "  Removed $file"
+            }
+        }
+        Remove-Item $Manifest -Force
+        Write-Host "Uninstall complete."
+    } else {
+        Write-Host "No manifest found — nothing to uninstall."
+    }
+    return
 }
 
-# Verify repo structure
-if (-not (Test-Path (Join-Path $RepoRoot ".claude\agents"))) {
-    Write-Log "Not a valid orchestrator repo: $RepoRoot" -Level 'ERROR'
-    exit 1
+Write-Host "Deploying cc-sdlc assets to $Target (mode: $Mode)..."
+$deployed = @()
+
+# Core agents
+Get-ChildItem "$RepoRoot\plugins\cc-sdlc-core\.claude\agents\*.md" -ErrorAction SilentlyContinue | ForEach-Object {
+    $dst = Join-Path $Target "agents\$($_.Name)"
+    Deploy-File -Src $_.FullName -Dst $dst
+    $script:deployed += $dst
 }
 
-# Create user .claude directory
+# Core skills
+Get-ChildItem "$RepoRoot\plugins\cc-sdlc-core\.claude\skills\*\SKILL.md" -ErrorAction SilentlyContinue | ForEach-Object {
+    $skillName = $_.Directory.Name
+    $dst = Join-Path $Target "skills\$skillName\SKILL.md"
+    Deploy-File -Src $_.FullName -Dst $dst
+    $script:deployed += $dst
+}
+
+# Core commands
+Get-ChildItem "$RepoRoot\plugins\cc-sdlc-core\.claude\commands\*.md" -ErrorAction SilentlyContinue | ForEach-Object {
+    $dst = Join-Path $Target "commands\$($_.Name)"
+    Deploy-File -Src $_.FullName -Dst $dst
+    $script:deployed += $dst
+}
+
+# Core rules
+Get-ChildItem "$RepoRoot\plugins\cc-sdlc-core\.claude\rules\*.md" -ErrorAction SilentlyContinue | ForEach-Object {
+    $dst = Join-Path $Target "rules\$($_.Name)"
+    Deploy-File -Src $_.FullName -Dst $dst
+    $script:deployed += $dst
+}
+
+# Hook scripts — deploy to ~/.claude/hooks/scripts/
+$hooksTarget = Join-Path $Target 'hooks\scripts'
+Get-ChildItem "$RepoRoot\plugins\cc-sdlc-core\hooks\scripts\*.js" -ErrorAction SilentlyContinue | ForEach-Object {
+    $dst = Join-Path $hooksTarget $_.Name
+    Deploy-File -Src $_.FullName -Dst $dst
+    $script:deployed += $dst
+}
+
+# Merge settings — backup existing, add hooks with absolute paths
+$settingsFile = Join-Path $Target 'settings.json'
 if (-not $DryRun) {
-    New-Item -ItemType Directory -Path $UserClaude -Force | Out-Null
+    if (Test-Path $settingsFile) {
+        $backupDir = Join-Path $Target '.orchestrator-backup'
+        if (-not (Test-Path $backupDir)) { New-Item -ItemType Directory -Path $backupDir -Force | Out-Null }
+        Copy-Item $settingsFile (Join-Path $backupDir "settings.json.$(Get-Date -Format 'yyyyMMddHHmmss')")
+    }
+
+    $settings = @{}
+    if (Test-Path $settingsFile) {
+        try {
+            $raw = Get-Content $settingsFile -Raw | ConvertFrom-Json
+            $raw.PSObject.Properties | ForEach-Object { $settings[$_.Name] = $_.Value }
+        } catch {}
+    }
+
+    # Ensure env block with model tiers
+    if (-not $settings.ContainsKey('env')) { $settings['env'] = @{} }
+    $env = $settings['env']
+    if ($env -is [pscustomobject]) {
+        $envHash = @{}
+        $env.PSObject.Properties | ForEach-Object { $envHash[$_.Name] = $_.Value }
+        $settings['env'] = $envHash
+        $env = $envHash
+    }
+    if (-not $env.ContainsKey('ORCH_MODEL_HEAVY')) { $env['ORCH_MODEL_HEAVY'] = 'claude-opus-4-6-20260320' }
+    if (-not $env.ContainsKey('ORCH_MODEL_DEFAULT')) { $env['ORCH_MODEL_DEFAULT'] = 'claude-sonnet-4-6-20260320' }
+    if (-not $env.ContainsKey('ORCH_MODEL_FAST')) { $env['ORCH_MODEL_FAST'] = 'claude-haiku-4-5-20250315' }
+
+    # Build hooks with absolute paths — use Node.js for JSON to avoid
+    # PowerShell 5.1 single-element array unwrapping and UTF-8 BOM issues
+    $hooksAbs = ($hooksTarget -replace '\\', '/')
+    $existingEnvJson = ($settings['env'] | ConvertTo-Json -Compress)
+    $nodeScript = @"
+const fs = require('fs');
+const path = require('path');
+const hooksDir = '$hooksAbs';
+const settingsFile = process.argv[1];
+
+let settings = {};
+try { settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8').replace(/^\uFEFF/, '')); } catch {}
+
+// Preserve existing env vars, add defaults
+if (!settings.env) settings.env = {};
+if (!settings.env.ORCH_MODEL_HEAVY) settings.env.ORCH_MODEL_HEAVY = 'claude-opus-4-6-20260320';
+if (!settings.env.ORCH_MODEL_DEFAULT) settings.env.ORCH_MODEL_DEFAULT = 'claude-sonnet-4-6-20260320';
+if (!settings.env.ORCH_MODEL_FAST) settings.env.ORCH_MODEL_FAST = 'claude-haiku-4-5-20250315';
+
+// Merge any env from PowerShell layer
+const psEnv = $existingEnvJson;
+Object.assign(settings.env, psEnv);
+
+const absHook = (script) => ({ type: 'command', command: 'node ' + path.join(hooksDir, script).replace(/\\\\/g, '/') });
+settings.hooks = {
+  SessionStart: [{ hooks: [{ ...absHook('session-start.js'), once: true }] }],
+  UserPromptSubmit: [{ hooks: [absHook('secret-detector.js')] }],
+  PreToolUse: [{ matcher: 'Bash', hooks: [absHook('pre-bash-safety.js')] }],
+  PostToolUse: [{ matcher: 'Edit|Write', hooks: [{ ...absHook('post-edit-validate.js'), async: true }] }],
+  SubagentStart: [{ hooks: [absHook('subagent-start-log.js')] }],
+  SubagentStop: [{ hooks: [absHook('subagent-stop-gate.js')] }],
+  PreCompact: [{ hooks: [absHook('pre-compact.js')] }],
+  PostCompact: [{ hooks: [absHook('post-compact.js')] }],
+  Stop: [{ hooks: [absHook('stop-summary.js')] }],
+  SessionEnd: [{ hooks: [absHook('session-end.js')] }]
+};
+
+fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2) + '\n');
+"@
+    $nodeScript | node - ($settingsFile -replace '\\', '/')
+    Write-Host "Settings merged at $settingsFile"
 }
 
-# Track deployed files for manifest
-[System.Collections.ArrayList]$deployedFiles = @()
-
-# Deploy asset groups
-Write-Log "Deploying agents..."
-Deploy-Directory `
-    -SourceDir (Join-Path $RepoRoot ".claude\agents") `
-    -TargetDir (Join-Path $UserClaude "agents") `
-    -Label "Agents" `
-    -FileList ([ref]$deployedFiles)
-
-Write-Host ""
-Write-Log "Deploying skills..."
-Deploy-Directory `
-    -SourceDir (Join-Path $RepoRoot ".claude\skills") `
-    -TargetDir (Join-Path $UserClaude "skills") `
-    -Label "Skills" `
-    -FileList ([ref]$deployedFiles)
-
-Write-Host ""
-Write-Log "Deploying commands..."
-Deploy-Directory `
-    -SourceDir (Join-Path $RepoRoot ".claude\commands") `
-    -TargetDir (Join-Path $UserClaude "commands") `
-    -Label "Commands" `
-    -FileList ([ref]$deployedFiles)
-
-Write-Host ""
-Write-Log "Deploying rules..."
-Deploy-Directory `
-    -SourceDir (Join-Path $RepoRoot ".claude\rules") `
-    -TargetDir (Join-Path $UserClaude "rules") `
-    -Label "Rules" `
-    -FileList ([ref]$deployedFiles)
-
-if (-not $SkipHooks) {
-    Write-Host ""
-    Write-Log "Deploying hooks..."
-    Deploy-Hooks -FileList ([ref]$deployedFiles)
+# Write manifest (avoid BOM)
+if (-not $DryRun -and $deployed.Count -gt 0) {
+    $json = @{ files = $deployed; mode = $Mode } | ConvertTo-Json -Depth 5
+    [System.IO.File]::WriteAllText($Manifest, $json, (New-Object System.Text.UTF8Encoding $false))
 }
 
-if (-not $SkipSettings) {
-    Write-Host ""
-    Write-Log "Merging settings..."
-    Merge-Settings -FileList ([ref]$deployedFiles)
-}
-
-# Save deployment manifest
-$manifest = @{
-    version    = '1.0'
-    deployedAt = $Timestamp
-    mode       = $Mode
-    repoRoot   = $RepoRoot
-    files      = @($deployedFiles)
-}
-
-Save-Manifest -Manifest $manifest
-
-# Summary
-Write-Host ""
-Write-Log "Deployment complete!"
-Write-Log "  Deployed: $($deployedFiles.Count) files"
-Write-Log "  Manifest: $ManifestFile"
-if (-not $DryRun -and (Test-Path $BackupDir)) {
-    Write-Log "  Backups:  $BackupDir\$Timestamp"
-}
-Write-Host ""
-Write-Log "Verify with:"
-Write-Log "  claude --agent conductor 'Hello, verify agents and hooks are loaded'"
-Write-Host ""
-if ($Mode -eq 'Copy') {
-    Write-Log "Note: Re-run this script after updating the orchestrator repo to sync changes."
-} else {
-    Write-Log "Note: Symlinks auto-update when repo files change. Re-run only for new files."
-}
+Write-Host "Deployed $($deployed.Count) files." -ForegroundColor Green

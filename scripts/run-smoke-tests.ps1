@@ -11,6 +11,23 @@ $ErrorActionPreference = 'Continue'
 $pass = 0
 $fail = 0
 
+$isRepoLayout = Test-Path "plugins\cc-sdlc-core\.claude\agents"
+if ($isRepoLayout) {
+    $agentBase = "plugins\cc-sdlc-core\.claude\agents"
+    $skillBase = "plugins\cc-sdlc-core\.claude\skills"
+    $commandBase = "plugins\cc-sdlc-core\.claude\commands"
+    $ruleBase = "plugins\cc-sdlc-core\.claude\rules"
+    $hooksJsonPath = "plugins\cc-sdlc-core\hooks\hooks.json"
+    $hookScriptBase = "plugins\cc-sdlc-core\hooks\scripts"
+} else {
+    $agentBase = ".claude\agents"
+    $skillBase = ".claude\skills"
+    $commandBase = ".claude\commands"
+    $ruleBase = ".claude\rules"
+    $hooksJsonPath = "hooks\hooks.json"
+    $hookScriptBase = "hooks\scripts"
+}
+
 function Test-Pass { param([string]$Name) Write-Host "  + $Name" -ForegroundColor Green; $script:pass++ }
 function Test-Fail { param([string]$Name) Write-Host "  - $Name" -ForegroundColor Red; $script:fail++ }
 
@@ -19,38 +36,38 @@ Write-Host "=== Smoke Tests ==="
 # Agents
 Write-Host "Agents:"
 foreach ($agent in @('conductor','planner','implementer','reviewer','researcher','security-reviewer','tdd-guide','red-team','doc-updater')) {
-    if (Test-Path ".claude\agents\$agent.md") { Test-Pass $agent }
+    if (Test-Path (Join-Path $agentBase "$agent.md")) { Test-Pass $agent }
     else { Test-Fail "$agent - missing" }
 }
 
 # Skills
 Write-Host "Skills:"
 foreach ($skill in @('tdd-workflow','security-review','coding-standards','plan-workflow','review-workflow','delegation-routing','budget-gatekeeper','strategic-compact','verification-loop','session-continuity')) {
-    if (Test-Path ".claude\skills\$skill\SKILL.md") { Test-Pass $skill }
+    if (Test-Path (Join-Path (Join-Path $skillBase $skill) 'SKILL.md')) { Test-Pass $skill }
     else { Test-Fail "$skill - missing SKILL.md" }
 }
 
 # Commands
 Write-Host "Commands:"
 foreach ($cmd in @('conduct','plan','implement','review','research','secure','test','deploy-check','doc','red-team','audit','route','status','compact')) {
-    if (Test-Path ".claude\commands\$cmd.md") { Test-Pass $cmd }
+    if (Test-Path (Join-Path $commandBase "$cmd.md")) { Test-Pass $cmd }
     else { Test-Fail "$cmd - missing" }
 }
 
 # Rules
 Write-Host "Rules:"
 foreach ($rule in @('persona','quality','security','lifecycle','delegation','budget')) {
-    if (Test-Path ".claude\rules\$rule.md") { Test-Pass $rule }
+    if (Test-Path (Join-Path $ruleBase "$rule.md")) { Test-Pass $rule }
     else { Test-Fail "$rule - missing" }
 }
 
 # Hooks
 Write-Host "Hooks:"
-if (Test-Path "hooks\hooks.json") { Test-Pass "hooks.json exists" }
+if (Test-Path $hooksJsonPath) { Test-Pass "hooks.json exists" }
 else { Test-Fail "hooks.json missing" }
 
 foreach ($script in @('session-start','session-end','pre-compact','post-compact','pre-bash-safety','post-edit-validate','subagent-stop-gate','stop-summary','secret-detector','subagent-start-log')) {
-    if (Test-Path "hooks\scripts\$script.js") { Test-Pass "$script.js" }
+    if (Test-Path (Join-Path $hookScriptBase "$script.js")) { Test-Pass "$script.js" }
     else { Test-Fail "$script.js - missing" }
 }
 

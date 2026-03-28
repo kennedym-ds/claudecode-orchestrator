@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+# cc-sdlc Git pre-commit hook
+# Validates plugin assets (agents, skills, commands, hooks, manifests) before commit.
+# Install: bash scripts/install-git-hooks.sh
+# Skip:    git commit --no-verify (emergency only)
+set -euo pipefail
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
+# ── Gather staged files ──────────────────────────────────────────────
+STAGED=$(git diff --cached --name-only --diff-filter=ACM)
+if [ -z "$STAGED" ]; then
+  exit 0
+fi
+
+# ── Decide what to validate ──────────────────────────────────────────
+CHECK_AGENTS=false
+CHECK_SKILLS=false
+CHECK_COMMANDS=false
+CHECK_RULES=false
+CHECK_HOOKS=false
+CHECK_JSON=false
+
+while IFS= read -r file; do
+  case "$file" in
+    plugins/*/.claude/agents/*.md)    CHECK_AGENTS=true ;;
+    plugins/*/.claude/skills/*/SKILL.md) CHECK_SKILLS=true ;;
+    plugins/*/.claude/commands/*.md)  CHECK_COMMANDS=true ;;
+    plugins/*/.claude/rules/*.md)     CHECK_RULES=true ;;
+    plugins/*/hooks/*)                CHECK_HOOKS=true ;;
+    .claude-plugin/*.json|plugins/*/.claude-plugin/*.json) CHECK_JSON=true ;;
+  esac
+done <<< "$STAGED"
+
+# Nothing relevant staged — skip validation
+if ! $CHECK_AGENTS && ! $CHECK_SKILLS && ! $CHECK_COMMANDS && \
+   ! $CHECK_RULES && ! $CHECK_HOOKS && ! $CHECK_JSON; then
+  exit 0
+fi
+
+echo "[pre-commit] Validating cc-sdlc assets..."
+
+ERRORS=0
+
+# ── Helper: validate YAML frontmatter ────────────────────────────────
+check_frontmatter() {
+  local file="$1" label="$2"
+  local name
+  name=$(basename "$file" .md)
+  if ! head -1 "$file" | grep -q '^---'; then
+    echo "  ERROR: $label $name — missing YAML frontmatter"
+    return 1
+  fi
+  return 0
+}
+
+check_required_fields() {
+  local file="$1" label="$2"
+  local name
+  name=$(basename "$file" .md)
+  for field in name description; do
+    if ! grep -q "^${field}:" "$file"; then
+      echo "  ERROR: $label $name — missing required field '$field'"
+      return 1
+    fi
+  done
+  return 0
+}
+
+# ── Validate staged agents ───────────────────────────────────────────
+if $CHECK_AGENTS; then
+  while IFS= read -r file; do
+    case "$file" in plugins/*/.claude/agents/*.md) ;; *) continue ;; esac
+    [ -f "$REPO_ROOT/$file" ] || continue
+    if ! check_frontmatter "$REPO_ROOT/$file" "Agent"; then ((ERRORS++)); fi
+    if ! check_required_fields "$REPO_ROOT/$file" "Agent"; then ((ERRORS++)); fi
+  done <<< "$STAGED"
+fi
+
+# ── Validate staged skills ───────────────────────────────────────────
+if $CHECK_SKILLS; then
+  while IFS= read -r file; do
+    case "$file" in plugins/*/.claude/skills/*/SKILL.md) ;; *) continue ;; esac
+    [ -f "$REPO_ROOT/$file" ] || continue
+    name=$(basename "$(dirname "$REPO_ROOT/$file")")
+    if ! head -1 "$REPO_ROOT/$file" | grep -q '^---'; then
+      echo "  ERROR: Skill $name — missing YAML frontmatter"
+      ((ERRORS++))
+    fi
+    for field in name description; do
+      if ! grep -q "^${field}:" "$REPO_ROOT/$file"; then
+        echo "  ERROR: Skill $name — missing required field '$field'"
+        ((ERRORS++))
+      fi
+    done
+  done <<< "$STAGED"
+fi
+
+# ── Validate staged commands ─────────────────────────────────────────
+if $CHECK_COMMANDS; then
+  while IFS= read -r file; do
+    case "$file" in plugins/*/.claude/commands/*.md) ;; *) continue ;; esac
+    [ -f "$REPO_ROOT/$file" ] || continue
+    # Commands just need to be non-empty
+    if [ ! -s "$REPO_ROOT/$file" ]; then
+      name=$(basename "$file" .md)
+      echo "  ERROR: Command $name — file is empty"
+      ((ERRORS++))
+    fi
+  done <<< "$STAGED"
+fi
+
+# ── Validate staged rules ────────────────────────────────────────────
+if $CHECK_RULES; then
+  while IFS= read -r file; do
+    case "$file" in plugins/*/.claude/rules/*.md) ;; *) continue ;; esac
+    [ -f "$REPO_ROOT/$file" ] || continue
+    if [ ! -s "$REPO_ROOT/$file" ]; then
+      name=$(basename "$file" .md)
+      echo "  ERROR: Rule $name — file is empty"
+      ((ERRORS++))
+    fi
+  done <<< "$STAGED"
+fi
+
+# ── Validate staged JSON files ───────────────────────────────────────
+if $CHECK_JSON || $CHECK_HOOKS; then
+  while IFS= read -r file; do
+    case "$file" in *.json) ;; *) continue ;; esac
+    [ -f "$REPO_ROOT/$file" ] || continue
+    if command -v node &>/dev/null; then
+      if ! node -e "JSON.parse(require('fs').readFileSync('$REPO_ROOT/$file','utf8'))" 2>/dev/null; then
+        echo "  ERROR: $file — invalid JSON"
+        ((ERRORS++))
+      fi
+    elif command -v python3 &>/dev/null; then
+      if ! python3 -c "import json; json.load(open('$REPO_ROOT/$file'))" 2>/dev/null; then
+        echo "  ERROR: $file — invalid JSON"
+        ((ERRORS++))
+      fi
+    fi
+  done <<< "$STAGED"
+fi
+
+# ── Validate staged hook scripts ─────────────────────────────────────
+if $CHECK_HOOKS; then
+  while IFS= read -r file; do
+    case "$file" in plugins/*/hooks/scripts/*.js) ;; *) continue ;; esac
+    [ -f "$REPO_ROOT/$file" ] || continue
+    if [ ! -s "$REPO_ROOT/$file" ]; then
+      echo "  ERROR: Hook script empty — $file"
+      ((ERRORS++))
+    fi
+    # Basic syntax check
+    if command -v node &>/dev/null; then
+      if ! node --check "$REPO_ROOT/$file" 2>/dev/null; then
+        echo "  ERROR: $file — JavaScript syntax error"
+        ((ERRORS++))
+      fi
+    fi
+  done <<< "$STAGED"
+fi
+
+# ── Result ────────────────────────────────────────────────────────────
+if [ "$ERRORS" -gt 0 ]; then
+  echo "[pre-commit] BLOCKED — $ERRORS error(s) found. Fix them before committing."
+  echo "[pre-commit] Use 'git commit --no-verify' to bypass (emergency only)."
+  exit 1
+fi
+
+echo "[pre-commit] All staged assets valid."
+exit 0

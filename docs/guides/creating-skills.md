@@ -1,6 +1,27 @@
 # Creating Custom Skills
 
-Skills are reusable workflows that Claude can invoke on demand or automatically. This guide covers creating, configuring, and testing skills.
+Skills are reusable workflows that Claude can invoke on demand or automatically. This guide covers creating, configuring, and testing skills, with specific guidance for extending the cc-sdlc orchestrator.
+
+**Template:** [`docs/templates/skill.md`](../templates/skill.md) — copy-paste SKILL.md starter
+
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Skills vs Commands vs Rules](#skills-vs-commands-vs-rules)
+- [Frontmatter Reference](#frontmatter-reference)
+- [Arguments](#arguments)
+- [Dynamic Context with !command](#dynamic-context-with-command)
+- [Supporting Files](#supporting-files)
+- [Running in a Subagent (Fork Context)](#running-in-a-subagent-fork-context)
+- [Tool Permissions in Settings](#tool-permissions-in-settings)
+- [Plugin Skills](#plugin-skills)
+- [Testing](#testing)
+- [Common Patterns](#common-patterns)
+- [Adding Skills to cc-sdlc](#adding-skills-to-cc-sdlc)
+- [Writing Coding Standard Skills](#writing-coding-standard-skills)
+- [Writing Domain Overlay Skills](#writing-domain-overlay-skills)
+- [Debugging Skills](#debugging-skills)
+- [Best Practices](#best-practices)
 
 ## Quick Start
 
@@ -272,3 +293,212 @@ agent: Explore
 3. **Use `allowed-tools` for safety** — Restrict tool access when the skill doesn't need full capabilities
 4. **Use `context: fork` for heavy analysis** — Keeps verbose output out of main context
 5. **Use `disable-model-invocation: true`** for destructive or expensive operations that should only run when explicitly requested
+
+## Adding Skills to cc-sdlc
+
+### Choose the right plugin
+
+| Plugin | Skill type | Example |
+|--------|-----------|---------|
+| `cc-sdlc-core` | Workflow skills (review, planning, deploy) | `confidence-scoring`, `tdd-workflow` |
+| `cc-sdlc-standards` | Language coding standards | `python-standards`, `typescript-standards` |
+| `cc-sdlc-standards` | Domain overlays | `embedded-systems-overlay`, `web-frontend-overlay` |
+| `cc-github` | GitHub workflow skills | `pr-workflow`, `issue-triage` |
+| `cc-jira` | Jira workflow skills | `issue-context`, `plan-to-stories` |
+| `cc-confluence` | Confluence workflow skills | `publish-plan`, `research-confluence` |
+| `cc-jama` | Jama workflow skills | `req-tracing`, `test-coverage-map` |
+
+### Create the skill directory
+
+```bash
+# Core workflow skill
+mkdir -p plugins/cc-sdlc-core/.claude/skills/my-skill/
+
+# Language standard
+mkdir -p plugins/cc-sdlc-standards/.claude/skills/my-language-standards/
+
+# Domain overlay
+mkdir -p plugins/cc-sdlc-standards/.claude/skills/my-domain-overlay/
+```
+
+### Write SKILL.md
+
+Use the template at `docs/templates/skill.md` as a starting point.
+
+### Register with agents
+
+Add the skill name to any agent's `skills:` frontmatter that should use it:
+
+```yaml
+# In the agent's frontmatter
+skills:
+  - my-skill
+  - existing-skill
+```
+
+### Validate
+
+```bash
+pwsh -File scripts/validate-assets.ps1 -ShowDetails
+```
+
+The validator checks: `SKILL.md` exists, frontmatter has `name` and `description`.
+
+## Writing Coding Standard Skills
+
+Coding standard skills live in `plugins/cc-sdlc-standards/` and follow a consistent structure.
+
+### Structure
+
+```
+plugins/cc-sdlc-standards/.claude/skills/
+└── my-language-standards/
+    └── SKILL.md
+```
+
+### Severity tiers
+
+All coding standards use three severity levels:
+
+| Severity | Meaning | Review action |
+|----------|---------|--------------|
+| **ERROR** | Must fix before merge | Blocks code review approval |
+| **WARNING** | Should fix, reviewer flags | Reviewer notes, may approve with caveat |
+| **RECOMMENDATION** | Consider improving | Informational, does not affect approval |
+
+### Template structure
+
+```markdown
+---
+name: my-language-standards
+description: >
+  MyLanguage coding standards — idiomatic patterns, safety rules, and
+  style conventions. Applied automatically during code review for
+  .mylang files.
+---
+
+# MyLanguage Coding Standards
+
+## ERROR — Must Fix
+
+### MY-E001: Descriptive rule name
+**Why:** Explain the risk or quality impact.
+```mylang
+// ❌ Bad
+dangerousPattern()
+
+// ✅ Good
+safePattern()
+```
+
+## WARNING — Should Fix
+
+### MY-W001: Descriptive rule name
+**Why:** Explain why this matters.
+```mylang
+// ❌ Avoid
+lessIdealPattern()
+
+// ✅ Prefer
+betterPattern()
+```
+
+## RECOMMENDATION — Consider
+
+### MY-R001: Descriptive rule name
+**Why:** Explain the benefit.
+```mylang
+// Consider this approach
+improvedPattern()
+```
+```
+
+### Naming conventions
+
+- Skill directory: `{language}-standards` (e.g., `python-standards`, `typescript-standards`)
+- Rule IDs: `{LANG}-{SEVERITY}{NUMBER}` (e.g., `PY-E001`, `TS-W003`, `GO-R002`)
+- Severity prefix: `E` = ERROR, `W` = WARNING, `R` = RECOMMENDATION
+
+### Reference: Existing language standards
+
+The orchestrator ships with 20 language standards: python, javascript, typescript, c, cpp, csharp, go, rust, java, kotlin, swift, ruby, php, sql, terraform, bicep, powershell, vba, markdown, shell.
+
+## Writing Domain Overlay Skills
+
+Domain overlays add context-specific rules on top of language standards. They're activated via `sdlc-config.md` in the project.
+
+### Structure
+
+```
+plugins/cc-sdlc-standards/.claude/skills/
+└── my-domain-overlay/
+    └── SKILL.md
+```
+
+### Template structure
+
+```markdown
+---
+name: my-domain-overlay
+description: >
+  Domain overlay for {domain} — adds {domain}-specific patterns,
+  safety rules, and compliance requirements on top of language standards.
+---
+
+# {Domain} Domain Overlay
+
+## Context
+
+This overlay applies when `sdlc-config.md` sets `domain.primary` or
+`domain.secondary` to `my-domain`.
+
+## ERROR — Domain-Specific Safety
+
+### DOM-E001: Rule name
+**Context:** When this domain rule applies.
+**Why:** Domain-specific risk.
+
+## WARNING — Domain Best Practices
+
+### DOM-W001: Rule name
+**Context:** When this applies.
+
+## Integration with Language Standards
+
+This overlay composes with any language standard. When conflicts exist:
+- Domain ERROR overrides language RECOMMENDATION
+- Domain WARNING adds to language WARNING
+- If a language ERROR conflicts with domain practice, flag for human review
+```
+
+### Reference: Existing domain overlays
+
+The orchestrator ships with 7 domain overlays: embedded-systems, semiconductor-test, safety-critical, edge-ai, enterprise-app, web-frontend, uiux.
+
+## Debugging Skills
+
+### Skill not auto-invoked
+
+1. **Check description** — Does it match the user's request context?
+2. **Check `disable-model-invocation`** — If `true`, only manual `/skill-name` works
+3. **Check plugin namespace** — Plugin skills use `/plugin-name:skill-name`
+4. **Check file structure** — Must be `skills/my-skill/SKILL.md` (directory with SKILL.md inside)
+
+### Skill produces weak output
+
+1. **Check length** — Skills over 200 lines tend to have lower adherence
+2. **Check specificity** — Vague instructions produce vague output
+3. **Use examples** — Include ✅/❌ code examples for clearer guidance
+4. **Check model** — Complex skills may need `model: opus` or `effort: high`
+
+### Skill arguments not working
+
+1. **Use `$ARGUMENTS`** — The full argument string
+2. **Use `$1`, `$2`** — Positional arguments (space-delimited)
+3. **Check `argument-hint`** — Missing hint means no autocomplete guidance
+
+### Supporting files not found
+
+1. **Check relative paths** — Use `@filename.md` syntax in SKILL.md
+2. **Check directory structure** — Files must be in the same skill directory or subdirectory
+3. **Use `${CLAUDE_SKILL_DIR}`** — Resolves to the skill's directory at runtime

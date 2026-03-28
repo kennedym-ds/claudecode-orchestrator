@@ -19,8 +19,8 @@
 
    Or install to a specific project only:
    ```bash
-   bash scripts/install.sh /path/to/your/project
-   pwsh -File scripts/install.ps1 -TargetPath C:\path\to\project   # Windows
+   bash installer/install.sh --target /path/to/your/project
+   pwsh -File installer/install.ps1 -TargetPath C:\path\to\project   # Windows
    ```
 
 3. **Configure model tiers** (optional â‚¬â€ defaults are already set):
@@ -74,7 +74,7 @@ bash scripts/deploy-user.sh --uninstall
 - Agents, skills, commands, rules copied/symlinked to `~/.claude/`
 - Hook scripts deployed to `~/.claude/hooks/scripts/` with absolute paths in settings
 - Settings are **merged** â‚¬â€ existing env vars, permissions, and model choices preserved
-- A manifest file (`.orchestrator-manifest.json`) tracks deployed files for clean uninstall
+- A manifest file (`.cc-sdlc-manifest.json`) tracks deployed files for clean uninstall
 - Previous settings backed up to `~/.claude/.orchestrator-backup/`
 
 ### Project-Level
@@ -82,7 +82,7 @@ bash scripts/deploy-user.sh --uninstall
 Installs orchestrator assets into a specific project's `.claude/` folder.
 
 ```bash
-bash scripts/install.sh /path/to/project
+bash installer/install.sh --target /path/to/project
 ```
 
 ### Plugin

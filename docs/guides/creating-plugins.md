@@ -2,6 +2,23 @@
 
 Plugins package skills, agents, hooks, MCP servers, and LSP servers for distribution across projects and teams.
 
+**Template:** [`docs/templates/plugin/`](../templates/plugin/) — copy-paste scaffold with manifest, agent, skill, and hook starters
+
+## Table of Contents
+
+- [When to Use Plugins vs Standalone](#when-to-use-plugins-vs-standalone)
+- [Quick Start](#quick-start)
+- [Plugin Manifest Schema](#plugin-manifest-schema)
+- [Plugin Components](#plugin-components)
+- [Converting Standalone to Plugin](#converting-standalone-to-plugin)
+- [Distribution](#distribution)
+- [Development Workflow](#development-workflow)
+- [Adding Plugins to cc-sdlc Marketplace](#adding-plugins-to-cc-sdlc-marketplace)
+- [Multi-Plugin Architecture](#multi-plugin-architecture)
+- [Plugin Security Model](#plugin-security-model)
+- [Debugging Plugins](#debugging-plugins)
+- [Best Practices](#best-practices)
+
 ## When to Use Plugins vs Standalone
 
 | Approach | Skill namespace | Best for |
@@ -282,3 +299,160 @@ Submit at [claude.ai/settings/plugins/submit](https://claude.ai/settings/plugins
 5. **Document security limitations** — Plugin agents can't use hooks/mcpServers/permissionMode
 6. **Test with `--plugin-dir`** before distributing
 7. **Use `/reload-plugins`** during development instead of restarting sessions
+
+## Adding Plugins to cc-sdlc Marketplace
+
+To add a new integration plugin to the cc-sdlc suite:
+
+### 1. Create the plugin structure
+
+```bash
+mkdir -p plugins/cc-myintegration/.claude-plugin
+mkdir -p plugins/cc-myintegration/.claude/{agents,skills,commands}
+mkdir -p plugins/cc-myintegration/mcp
+```
+
+### 2. Create the manifest
+
+**`plugins/cc-myintegration/.claude-plugin/plugin.json`:**
+```json
+{
+  "name": "cc-myintegration",
+  "version": "1.0.0",
+  "description": "MyIntegration — brief description of what this plugin provides.",
+  "author": "kennedym-ds",
+  "license": "MIT",
+  "components": {
+    "agents": ".claude/agents/",
+    "skills": ".claude/skills/",
+    "commands": ".claude/commands/"
+  },
+  "mcpServers": {
+    "myintegration": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["mcp/server.js"],
+      "env": {
+        "MY_API_TOKEN": "${MY_API_TOKEN}"
+      }
+    }
+  }
+}
+```
+
+### 3. Register in marketplace.json
+
+Add the plugin to `.claude-plugin/marketplace.json`:
+
+```json
+{
+  "name": "cc-myintegration",
+  "path": "plugins/cc-myintegration",
+  "description": "MyIntegration — brief description"
+}
+```
+
+### 4. Register in the installer
+
+Add short name mapping to both `installer/install.sh` and `installer/install.ps1`:
+
+```bash
+# install.sh — add to PLUGIN_MAP
+[myintegration]="cc-myintegration"
+```
+
+```powershell
+# install.ps1 — add to $PluginMap
+'myintegration' = 'cc-myintegration'
+```
+
+### 5. Register with conductor
+
+Add the plugin's agent(s) to the conductor's `tools` list in `plugins/cc-sdlc-core/.claude/agents/conductor.md`.
+
+### 6. Add to onboarding
+
+If your integration needs credentials, add it to `installer/onboard.ps1` and `installer/onboard.sh`.
+
+### 7. Validate
+
+```bash
+pwsh -File scripts/validate-assets.ps1 -ShowDetails
+```
+
+## Multi-Plugin Architecture
+
+The cc-sdlc suite uses a multi-plugin architecture where plugins are composed at runtime:
+
+```
+┌────────────────────────────────────────────────────────────┐
+│                    Global Namespace                         │
+│  All agents, skills, commands merged from installed plugins │
+├────────────┬────────────┬────────────────┬─────────────────┤
+│ cc-sdlc-   │ cc-sdlc-   │ cc-github      │ cc-jira         │
+│ core       │ standards  │ cc-confluence  │ cc-jama         │
+│            │            │                │                 │
+│ 19 agents  │ 27 skills  │ 2 agents       │ 1 agent each    │
+│ 18 skills  │ (20 lang + │ 2 skills       │ 2 skills each   │
+│ 22 cmds    │  7 domain) │ 2 cmds         │ 2 cmds each     │
+│ 14 hooks   │            │ GitHub MCP     │ Custom MCPs     │
+│ 6 rules    │            │                │                 │
+└────────────┴────────────┴────────────────┴─────────────────┘
+```
+
+**Key principle:** Plugins don't call each other directly. Instead:
+- All components flatten into a single namespace when installed
+- The conductor can delegate to any agent from any plugin
+- Any agent can reference skills from any installed plugin
+- MCP tools are available to any agent with appropriate tool access
+
+### Cross-plugin dependencies
+
+If plugin B depends on plugin A being installed:
+1. Document the dependency in the plugin's README.md
+2. Check for the dependency at runtime (e.g., check if an agent name resolves)
+3. Gracefully degrade — inform the user which plugin is missing
+
+## Plugin Security Model
+
+| Capability | Standalone (.claude/) | Plugin |
+|-----------|----------------------|--------|
+| `hooks` in agent frontmatter | ✅ Allowed | ❌ Ignored |
+| `mcpServers` in agent frontmatter | ✅ Allowed | ❌ Ignored |
+| `permissionMode` in agent frontmatter | ✅ Allowed | ❌ Ignored |
+| `tools` / `disallowedTools` | ✅ Allowed | ✅ Allowed |
+| `model` / `effort` / `memory` | ✅ Allowed | ✅ Allowed |
+| Plugin-level MCP servers | N/A | ✅ Via plugin.json |
+| Plugin-level hooks | N/A | ✅ Via hooks/hooks.json |
+
+**Why the restriction?** Plugin agents are distributed code. Allowing them to set `permissionMode: bypassPermissions` or define arbitrary hooks would be a security risk. These capabilities are only trusted from the project owner's `.claude/` directory.
+
+**Workaround:** If a plugin agent needs these capabilities, instruct users to copy it to their local `.claude/agents/` directory.
+
+## Debugging Plugins
+
+### Plugin not loading
+
+1. **Check manifest** — `plugin.json` must be valid JSON with `name` and `description`
+2. **Check directory structure** — `.claude-plugin/plugin.json` must be at the correct location
+3. **Check `--plugin-dir`** — Path must point to the plugin root, not the `.claude-plugin/` subdirectory
+4. **Run `/reload-plugins`** — Plugin changes require reload
+
+### Skills not found
+
+1. **Check namespace** — Plugin skills use `/plugin-name:skill-name`
+2. **Check directory** — Must be `skills/skill-name/SKILL.md` (not just `skills/SKILL.md`)
+3. **Check frontmatter** — `name` field must match the directory name
+
+### Agents not delegated to
+
+1. **Check name conflicts** — If multiple plugins define the same agent name, higher-priority wins
+2. **Check conductor tools** — Integration agents need to be listed in the conductor's `Agent(...)` tool list
+3. **Check security restrictions** — Plugin agents can't use hooks, mcpServers, or permissionMode
+
+### MCP server not connecting
+
+1. **Check env vars** — Credentials must be set in the environment
+2. **Check command** — Verify the MCP server command runs independently
+3. **Check plugin.json** — `mcpServers` must be a top-level key with correct structure
+4. **Test manually** — Run the MCP server directly to see error output

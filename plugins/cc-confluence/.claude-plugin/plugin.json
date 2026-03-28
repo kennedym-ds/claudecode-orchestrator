@@ -1,10 +1,24 @@
 {
   "name": "cc-confluence",
-  "displayName": "Confluence Integration",
-  "description": "Confluence Cloud integration for Claude Code — search, read, create, and update pages. Publish plans, reviews, and research as Confluence pages.",
-  "version": "0.1.0",
-  "author": {
-    "name": "kennedym-ds"
+  "version": "1.0.0",
+  "description": "Confluence integration — ADR publishing, knowledge search, runbook sync, and page management via Confluence MCP.",
+  "author": "kennedym-ds",
+  "license": "MIT",
+  "components": {
+    "agents": ".claude/agents/",
+    "skills": ".claude/skills/",
+    "commands": ".claude/commands/"
   },
-  "license": "MIT"
+  "mcpServers": {
+    "confluence": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp/server.js"],
+      "env": {
+        "CONFLUENCE_BASE_URL": "${CONFLUENCE_BASE_URL}",
+        "CONFLUENCE_USER_EMAIL": "${CONFLUENCE_USER_EMAIL}",
+        "CONFLUENCE_API_TOKEN": "${CONFLUENCE_API_TOKEN}"
+      }
+    }
+  }
 }

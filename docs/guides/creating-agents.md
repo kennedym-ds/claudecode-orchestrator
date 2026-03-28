@@ -1,6 +1,26 @@
 # Creating Custom Agents
 
-This guide covers how to create, configure, and test custom subagents for Claude Code.
+This guide covers how to create, configure, and test custom subagents for Claude Code, with specific guidance for extending the cc-sdlc orchestrator.
+
+**Template:** [`docs/templates/agent.md`](../templates/agent.md) — copy-paste starter file
+
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [File Location & Scope](#file-location--scope)
+- [Frontmatter Reference](#frontmatter-reference)
+- [System Prompt (Body)](#system-prompt-body)
+- [Tool Access Patterns](#tool-access-patterns)
+- [Persistent Memory](#persistent-memory)
+- [Hooks in Agent Frontmatter](#hooks-in-agent-frontmatter)
+- [Testing](#testing)
+- [Common Patterns](#common-patterns)
+- [Adding Agents to cc-sdlc](#adding-agents-to-cc-sdlc)
+- [Model Tier Selection Guide](#model-tier-selection-guide)
+- [Description Writing Guide](#description-writing-guide)
+- [Debugging Agents](#debugging-agents)
+- [Important Constraints](#important-constraints)
+- [Invocation](#invocation)
 
 ## Quick Start
 
@@ -241,3 +261,226 @@ permissionMode: default
 - **@-mention:** `@"code-reviewer (agent)" review the auth module`
 - **Main thread:** `claude --agent code-reviewer`
 - **Project default:** Set `"agent": "code-reviewer"` in `.claude/settings.json`
+
+## Adding Agents to cc-sdlc
+
+When extending the orchestrator with a new core agent, follow these steps:
+
+### 1. Choose the right plugin
+
+| Plugin | When to use |
+|--------|-------------|
+| `cc-sdlc-core` | Core SDLC workflow agents (planning, implementing, reviewing, testing) |
+| `cc-github` | GitHub-specific workflows |
+| `cc-jira` | Jira-specific workflows |
+| `cc-confluence` | Confluence-specific workflows |
+| `cc-jama` | Jama-specific workflows |
+| `cc-sdlc-standards` | Standards don't have agents — use skills instead |
+
+### 2. Create the agent file
+
+Place the agent in the target plugin's agent directory:
+
+```
+plugins/cc-sdlc-core/.claude/agents/my-agent.md
+```
+
+### 3. Register with the conductor
+
+Add the agent name to the conductor's `tools` list so it can delegate:
+
+```yaml
+# In plugins/cc-sdlc-core/.claude/agents/conductor.md
+tools:
+  - Agent(planner, ..., my-agent)
+```
+
+### 4. Update the conductor's tier awareness
+
+Add your agent to the appropriate model tier in the conductor's system prompt:
+
+```markdown
+## Model Tier Awareness
+
+- **Heavy tier (Opus):** ..., My-Agent (if judgment-heavy)
+- **Default tier (Sonnet):** ..., My-Agent (if implementation-focused)
+- **Fast tier (Haiku):** ..., My-Agent (if lightweight)
+```
+
+### 5. Update documentation
+
+- Add the agent to the roster table in `AGENTS.md`
+- Add any new commands that invoke the agent to the commands table
+- Run validation: `pwsh -File scripts/validate-assets.ps1`
+
+### 6. Run validation
+
+```bash
+# Bash
+bash scripts/validate-assets.sh
+
+# PowerShell
+pwsh -File scripts/validate-assets.ps1 -ShowDetails
+```
+
+The validator checks: frontmatter exists, `name` and `description` fields present, file is valid Markdown.
+
+## Model Tier Selection Guide
+
+Choosing the right model tier affects both quality and cost.
+
+| Factor | → Opus (heavy) | → Sonnet (default) | → Haiku (fast) |
+|--------|----------------|---------------------|----------------|
+| **Decision quality** | Must be correct first time | Can iterate | Approximate is fine |
+| **Context complexity** | Multi-file, cross-cutting | Single file or module | Single pattern |
+| **Risk of error** | High (security, architecture) | Medium (features) | Low (docs, estimates) |
+| **Turn count** | Few turns, high quality | Medium turns | Many turns, fast |
+| **Cost sensitivity** | Not primary concern | Balanced | Cost-critical |
+
+### Examples from cc-sdlc
+
+```yaml
+# Reviewer — judgment-heavy, must be accurate
+model: opus
+effort: high
+
+# Implementer — execution-focused, iterative
+model: sonnet
+# effort defaults to medium
+
+# Estimator — lightweight, approximate is fine
+model: haiku
+effort: low
+```
+
+## Description Writing Guide
+
+The `description` field is how Claude decides when to delegate to your agent. Good descriptions drive accurate routing.
+
+### Format
+
+```
+{Role summary} — {what it does}. Use {trigger conditions}.
+```
+
+### Good examples
+
+```yaml
+# ✅ Clear role, specific trigger
+description: >
+  Effort estimation and sprint planning — sizes work items and identifies
+  scheduling risks. Use when estimating tasks, planning sprints, or
+  assessing delivery timelines.
+
+# ✅ Keyword-rich, auto-delegation enabled
+description: >
+  Expert code reviewer. Use proactively after code changes are made.
+```
+
+### Bad examples
+
+```yaml
+# ❌ Too vague — Claude won't know when to delegate
+description: "Helps with code stuff"
+
+# ❌ Too long — bloats tool list context
+description: >
+  This agent is a comprehensive multi-modal code analysis system that
+  leverages advanced AI capabilities to perform deep semantic analysis
+  of code patterns across multiple programming languages...
+```
+
+### Tips
+
+- Include "Use proactively" if the agent should auto-activate
+- Include keywords that match user requests ("sprint", "estimate", "deploy")
+- Keep under 200 characters for the core description
+- Describe **when** to use, not just **what** it does
+
+## Debugging Agents
+
+### Agent not being delegated to
+
+1. **Check description** — Does it match the user's request keywords?
+2. **Check conductor tools** — Is your agent listed in `Agent(...)`?
+3. **Check name conflicts** — Run `grep -r "name: my-agent"` across all plugins
+4. **Check file location** — Must be in `.claude/agents/` in the correct plugin
+
+### Agent produces poor output
+
+1. **Check model tier** — Is the task too complex for Haiku? Too simple for Opus?
+2. **Check skills** — Are the right skills listed? Skills are **not inherited** from parent.
+3. **Check system prompt** — Is the workflow clear? Are constraints explicit?
+4. **Check maxTurns** — Is it running out of turns before completing?
+
+### Agent has no tool access
+
+1. **Check `tools` field** — If present, only listed tools are available
+2. **Check `disallowedTools`** — Is the needed tool blocked?
+3. **Check `permissionMode`** — `plan` mode blocks all writes
+4. **Plugin restriction** — Plugin agents can't use `hooks`, `mcpServers`, or `permissionMode`
+
+### Memory not persisting
+
+1. **Check `memory` field** — Must be `user`, `project`, or `local`
+2. **Check file path** — Memory is stored in `.claude/agent-memory/<name>/`
+3. **Check system prompt** — Include instructions for the agent to use its memory
+
+## Full Example: Adding a "Performance Profiler" Agent
+
+Here's a complete walkthrough of adding a new agent to cc-sdlc-core.
+
+### Step 1: Create the agent file
+
+**`plugins/cc-sdlc-core/.claude/agents/performance-profiler.md`:**
+
+```markdown
+---
+name: performance-profiler
+description: >
+  Performance profiling and optimization — measures runtime, memory, and
+  I/O bottlenecks. Use when analyzing slow code, profiling endpoints,
+  or optimizing hot paths.
+model: sonnet
+tools: Read, Grep, Glob, Bash
+maxTurns: 25
+memory: project
+effort: high
+skills:
+  - coding-standards
+---
+
+You are the **Performance Profiler** — you identify and analyze
+performance bottlenecks in code.
+
+## Process
+
+1. **Profile** — Identify the hot path using available tools
+2. **Measure** — Get baseline metrics (time complexity, memory allocation)
+3. **Analyze** — Determine root cause of bottleneck
+4. **Recommend** — Propose optimizations with expected impact
+
+## Output Format
+
+| Metric | Current | After Fix | Improvement |
+|--------|---------|-----------|-------------|
+| Time complexity | O(n²) | O(n log n) | ~100x at n=10000 |
+| Memory | 500MB | 50MB | 10x reduction |
+
+## Constraints
+
+- Never modify files — report findings only
+- Always include Big-O analysis
+- Compare against language-idiomatic patterns
+```
+
+### Step 2: Register with conductor
+
+Add `performance-profiler` to the conductor's tools list and model tier docs.
+
+### Step 3: Validate
+
+```bash
+pwsh -File scripts/validate-assets.ps1 -ShowDetails
+# Should show: Agents: 25 (was 24)
+```

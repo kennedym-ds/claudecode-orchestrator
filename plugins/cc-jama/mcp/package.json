@@ -1,0 +1,9 @@
+{
+  "name": "cc-jama-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Jama Connect MCP server for Claude Code cc-jama plugin",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  }
+}

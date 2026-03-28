@@ -1,0 +1,12 @@
+{
+  "name": "cc-my-plugin",
+  "version": "1.0.0",
+  "description": "Brief description of what this plugin provides.",
+  "author": "your-name",
+  "license": "MIT",
+  "components": {
+    "agents": ".claude/agents/",
+    "skills": ".claude/skills/",
+    "commands": ".claude/commands/"
+  }
+}

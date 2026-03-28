@@ -1,0 +1,17 @@
+{
+  "name": "cc-sdlc-core",
+  "version": "1.0.0",
+  "description": "SDLC lifecycle orchestration — 19 specialized agents, complexity-based routing, hook-driven safety gates, multi-tier model selection, artifact auditing, and cross-session memory.",
+  "author": "kennedym-ds",
+  "license": "MIT",
+  "components": {
+    "agents": ".claude/agents/",
+    "skills": ".claude/skills/",
+    "commands": ".claude/commands/",
+    "rules": ".claude/rules/"
+  },
+  "hooks": "hooks/hooks.json",
+  "settings": {
+    "defaultAgent": "conductor"
+  }
+}

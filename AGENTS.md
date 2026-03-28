@@ -1,24 +1,28 @@
-# Claude Code Orchestrator — Project Playbook
+# cc-sdlc — Project Playbook
 
 > **Status:** Active  
-> **Version:** 1.0.0
+> **Version:** 2.0.0
 
-SDLC lifecycle orchestration for Claude Code CLI. Built natively for Claude Code's primitives — subagents with real isolation, hook-driven quality gates, skills-based workflows, and complexity-based routing.
+Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 54 skills, 30 commands, hook-driven quality gates, complexity-based routing.
 
 ---
 
 ## Architecture
 
 ```
-.claude/agents/       → 9 subagent definitions (conductor, planner, implementer, reviewer, etc.)
-.claude/skills/       → 10 workflow skills (TDD, security, planning, routing, etc.)
-.claude/commands/     → 12 slash commands (entry points for workflows)
-.claude/rules/        → 6 behavioral guardrails (persona, quality, security, lifecycle, etc.)
-hooks/                → Hook configurations + Node.js handler scripts
-scripts/              → Validation, installation, and utility scripts
-artifacts/            → Local session outputs (plans, reviews, research, decisions)
-docs/                 → Guides, templates, examples
-examples/             → Example CLAUDE.md and settings profiles
+.claude-plugin/
+  marketplace.json        → Plugin catalog (6 plugins)
+plugins/
+  cc-sdlc-core/           → Orchestration engine (19 agents, 18 skills, 22 commands, 14 hooks)
+  cc-sdlc-standards/      → 20 language + 7 domain coding standards
+  cc-github/              → GitHub PR/issue workflows via MCP
+  cc-jira/                → Jira integration via MCP
+  cc-confluence/          → Confluence integration via MCP
+  cc-jama/                → Jama requirements tracing via MCP
+installer/                → Cross-platform install scripts + config template
+scripts/                  → Validation scripts
+docs/                     → Guides + templates
+artifacts/                → Local session outputs (plans, reviews, decisions)
 ```
 
 ## Core Workflow
@@ -73,19 +77,41 @@ Model selection is tier-based and fully configurable. Three tiers map to task co
    - `settings-standard.json` — Sonnet default, Opus for judgment roles (recommended)
    - `settings-premium.json` — Opus for everything (max quality, higher cost)
 
-## Agent Roster (9 Agents)
+## Agent Roster (24 Agents)
 
-| Agent | Tier | Model | Tools | Memory | Purpose |
-|-------|------|-------|-------|--------|---------|
-| **conductor** | heavy | opus | Agent(), Read, Grep, Glob, Bash | project | Lifecycle routing, phase management |
-| **planner** | heavy | opus | Read, Grep, Glob, Bash | project | Multi-phase planning, risk analysis |
-| **implementer** | default | sonnet | All (inherited) | — | TDD execution, code changes |
-| **reviewer** | heavy | opus | Read, Grep, Glob, Bash + plan mode | project | Severity-tagged code review |
-| **researcher** | default | sonnet | All (inherited) | project | Evidence gathering, citation |
-| **security-reviewer** | heavy | opus | Read, Grep, Glob, Bash + plan mode | — | OWASP, threat modeling |
-| **tdd-guide** | default | sonnet | All (inherited) | — | Test-first enforcement |
-| **red-team** | heavy | opus | Read, Grep, Glob, Bash + plan mode | — | Adversarial testing, edge cases |
-| **doc-updater** | default | sonnet | Read, Write, Edit, Grep, Glob | — | Documentation sync |
+### Core SDLC (19)
+
+| Agent | Tier | Model | Memory | Purpose |
+|-------|------|-------|--------|---------|
+| **conductor** | heavy | opus | project | Lifecycle routing, phase management |
+| **planner** | heavy | opus | project | Multi-phase planning, risk analysis |
+| **architect** | heavy | opus | project | Architecture design, ADRs |
+| **implementer** | default | sonnet | — | TDD execution, code changes |
+| **reviewer** | heavy | opus | project | Severity-tagged code review |
+| **researcher** | default | sonnet | project | Evidence gathering, citation |
+| **security-reviewer** | heavy | opus | — | OWASP security audit |
+| **threat-modeler** | heavy | opus | project | STRIDE/DREAD analysis |
+| **red-team** | heavy | opus | — | Adversarial testing, edge cases |
+| **spec-builder** | default | sonnet | project | Interactive specification elicitation |
+| **req-analyst** | fast | haiku | — | Story decomposition, acceptance criteria |
+| **estimator** | fast | haiku | project | T-shirt sizing, story points |
+| **pair-programmer** | default | sonnet | project | Collaborative coding |
+| **test-architect** | default | sonnet | project | Test strategy and pyramid design |
+| **tdd-guide** | default | sonnet | — | Test-first enforcement |
+| **e2e-tester** | default | sonnet | — | End-to-end acceptance tests |
+| **deploy-engineer** | fast | haiku | — | Pre-deploy checklist, CI/CD validation |
+| **incident-responder** | default | sonnet | project | Root cause analysis, 5-why |
+| **doc-updater** | default | sonnet | — | Documentation sync |
+
+### Integration (5)
+
+| Agent | Plugin | Model | Purpose |
+|-------|--------|-------|---------|
+| **github-pr** | cc-github | sonnet | PR creation, review, merge |
+| **github-issue** | cc-github | haiku | Issue triage, creation |
+| **jira-sync** | cc-jira | sonnet | Jira issue context |
+| **confluence-sync** | cc-confluence | sonnet | Confluence publish/search |
+| **jama-sync** | cc-jama | sonnet | Requirements tracing |
 
 ### Agent Frontmatter Reference
 
@@ -114,20 +140,30 @@ All agents use these Claude Code frontmatter fields:
 |---------|---------|
 | `/conduct` | Lifecycle orchestrator entry point |
 | `/plan` | Multi-phase planning |
+| `/architect` | Architecture design and ADR generation |
+| `/spec` | Interactive specification builder |
 | `/implement` | TDD execution |
 | `/review` | Code review with severity tagging |
+| `/test` | TDD test writing |
+| `/test-arch` | Test strategy and pyramid design |
+| `/e2e` | End-to-end test writing |
 | `/research` | Evidence gathering |
 | `/secure` | Security audit |
-| `/test` | TDD test writing |
+| `/threat-model` | STRIDE/DREAD threat modeling |
+| `/red-team` | Adversarial testing |
+| `/estimate` | Effort estimation |
+| `/pair` | Pair programming session |
+| `/incident` | Incident response and root cause analysis |
 | `/deploy-check` | CI/CD readiness check |
 | `/doc` | Documentation generation |
-| `/red-team` | Adversarial testing |
 | `/audit` | Harness quality audit |
 | `/route` | Complexity-based task routing |
+| `/status` | Session status |
+| `/compact` | Strategic context compaction |
 
 ## Hook Events
 
-Hooks are configured in `.claude/settings.json` (for standalone usage) and `hooks/hooks.json` (for plugin distribution). Both point to the same scripts in `hooks/scripts/`.
+Hooks are configured in `.claude/settings.json` (for standalone repo usage) and `plugins/cc-sdlc-core/hooks/hooks.json` (for plugin distribution). The standalone settings file uses repo-relative `plugins/cc-sdlc-core/hooks/scripts/` paths, while the plugin manifest uses `${CLAUDE_PLUGIN_ROOT}/hooks/scripts/`; both resolve to the same canonical hook scripts inside `plugins/cc-sdlc-core/hooks/scripts/`.
 
 **Hook types:** `command` (Node.js/shell), `http` (REST endpoint), `prompt` (LLM-evaluated), `agent` (subagent-handled).
 
@@ -138,18 +174,17 @@ Hooks are configured in `.claude/settings.json` (for standalone usage) and `hook
 | ✓ SessionStart | — | session-start.js | Set env vars via `CLAUDE_ENV_FILE`, log session |
 | ✓ UserPromptSubmit | — | secret-detector.js | Block secrets in prompts (exit 2) |
 | ✓ PreToolUse | Bash | pre-bash-safety.js | Block destructive commands (exit 2) |
+| ✓ PreToolUse | Bash | deploy-guard.js | Block production deployments (exit 2) |
 | ✓ PostToolUse | Edit\|Write | post-edit-validate.js | Lint/format after edits (async) |
+| ✓ PostToolUse | Edit\|Write | dependency-scanner.js | Scan for vulnerable dependencies (async) |
+| ✓ PostToolUse | Edit\|Write | compliance-logger.js | Audit trail for file changes (async) |
 | ✓ SubagentStart | — | subagent-start-log.js | Log subagent launches for budget tracking |
 | ✓ SubagentStop | — | subagent-stop-gate.js | Log completion, quality gate |
 | ✓ PreCompact | — | pre-compact.js | Preserve state before compaction |
 | ✓ PostCompact | — | post-compact.js | Restore state after compaction |
 | ✓ Stop | — | stop-summary.js | Update session timestamp |
+| ✓ Stop | — | pr-gate.js | Generate PR readiness summary |
 | ✓ SessionEnd | — | session-end.js | Archive session state |
-| PostToolUseFailure | — | — | Available: log failed tool uses |
-| PermissionRequest | — | — | Available: custom permission UI |
-| Notification | — | — | Available: external notifications |
-| TaskCompleted | — | — | Available: autopilot completion signal |
-| InstructionsLoaded | — | — | Available: debug which instructions loaded |
 
 **Hook input schema:** All hooks receive JSON on stdin. Key fields use snake_case:
 - `tool_input.command` (PreToolUse Bash)
@@ -203,7 +238,7 @@ bash scripts/deploy-user.sh --uninstall
 pwsh -File scripts/deploy-user.ps1 -Uninstall
 ```
 
-**What it deploys:** 9 agents, 10 skills, 12 commands, 6 rules, 10 hook scripts. Settings are merged (not overwritten). Hook paths are rewritten to absolute paths. A manifest tracks deployed files for clean uninstall.
+**What it deploys:** Agents, skills, commands, rules, and hook scripts. Settings are merged — existing env vars and permissions preserved, hook paths rewritten to absolute paths. Previous settings backed up to `~/.claude/.orchestrator-backup/`. A manifest (`.cc-sdlc-manifest.json`) tracks deployed files for clean uninstall.
 
 **Modes:**
 - **Copy** (default) — files copied; re-run to sync updates
@@ -215,10 +250,10 @@ Install to a specific project directory:
 
 ```bash
 # macOS/Linux
-bash scripts/install.sh /path/to/your/project
+bash installer/install.sh --target /path/to/your/project
 
 # Windows PowerShell
-pwsh -File scripts/install.ps1 -TargetPath C:\path\to\project
+pwsh -File installer/install.ps1 -TargetPath C:\path\to\project
 ```
 
 ### Plugin

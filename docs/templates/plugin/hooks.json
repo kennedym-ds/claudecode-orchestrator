@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node $CLAUDE_PLUGIN_ROOT/hooks/scripts/my-hook.js",
+            "async": true,
+            "statusMessage": "Running post-edit hook..."
+          }
+        ]
+      }
+    ]
+  }
+}

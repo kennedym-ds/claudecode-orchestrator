@@ -1,0 +1,58 @@
+name: Validate Assets
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate all assets
+        run: bash scripts/validate-assets.sh
+
+      - name: Run smoke tests
+        run: bash scripts/run-smoke-tests.sh
+
+  validate-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate all assets (PowerShell)
+        shell: pwsh
+        run: pwsh -File scripts/validate-assets.ps1
+
+      - name: Run smoke tests (PowerShell)
+        shell: pwsh
+        run: pwsh -File scripts/run-smoke-tests.ps1
+
+  validate-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate all assets
+        run: bash scripts/validate-assets.sh
+
+      - name: Run smoke tests
+        run: bash scripts/run-smoke-tests.sh
+
+  hook-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run hook unit tests
+        run: node --test "plugins/cc-sdlc-core/hooks/tests/*.test.js"
