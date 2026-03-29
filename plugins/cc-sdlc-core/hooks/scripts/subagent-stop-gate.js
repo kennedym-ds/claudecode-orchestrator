@@ -1,6 +1,6 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 /**
- * SubagentStop hook â€” quality gate when a subagent completes.
+ * SubagentStop hook — quality gate when a subagent completes.
  * Logs subagent completion for budget tracking.
  */
 const fs = require('fs');

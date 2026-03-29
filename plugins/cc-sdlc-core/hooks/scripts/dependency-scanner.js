@@ -25,7 +25,7 @@ const KNOWN_VULNERABLE = [
   { pattern: /"event-stream"/, message: 'event-stream: known supply-chain compromise (malicious code injection)' },
   { pattern: /"ua-parser-js"\s*:\s*"0\.7\.29"/, message: 'ua-parser-js@0.7.29: malware injection' },
   { pattern: /"colors"\s*:\s*"1\.4\.1"/, message: 'colors@1.4.1: protestware — infinite loop' },
-  { pattern: /"node-ipc"\s*:\s*"[1-9][0-9]\.[0-9]+"/, message: 'node-ipc@10+: protestware — data destruction' },
+  { pattern: /"node-ipc"\s*:\s*"[1-9]\d+\./, message: 'node-ipc@10+: protestware — data destruction' },
   { pattern: /"lodash"\s*:\s*"[0-3]\.\d+/, message: 'lodash < 4.x: prototype pollution CVEs (CVE-2019-10744 etc.)' },
   { pattern: /"flatmap-stream"/, message: 'flatmap-stream: malicious package (event-stream supply chain)' },
   { pattern: /"crossenv"/, message: 'crossenv: typosquat of cross-env — data exfiltration' },
