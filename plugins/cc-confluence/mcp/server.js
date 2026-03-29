@@ -163,6 +163,24 @@ function clampPagination(val, defaultVal, max) {
   return Math.max(1, Math.min(n, max));
 }
 
+const VALID_BODY_FORMATS = new Set(['storage', 'atlas_doc_format', 'view']);
+
+function validateBodyFormat(val) {
+  const fmt = val || 'storage';
+  if (!VALID_BODY_FORMATS.has(fmt)) {
+    throw new Error(`body_format must be one of: ${[...VALID_BODY_FORMATS].join(', ')}`);
+  }
+  return fmt;
+}
+
+function validateSpaceKey(val) {
+  const key = requireString(val, 'space_key');
+  if (!/^[A-Za-z0-9_-]+$/.test(key)) {
+    throw new Error('space_key must contain only alphanumeric characters, hyphens, and underscores');
+  }
+  return key;
+}
+
 // --- Tool Handlers ---
 async function handleTool(name, args) {
   switch (name) {
@@ -176,7 +194,8 @@ async function handleTool(name, args) {
         cql = `type = "page" AND text ~ "${cql.replace(/"/g, '\\"')}"`;
       }
       if (args.space_key && !cql.toLowerCase().includes('space')) {
-        cql = `space = "${args.space_key}" AND (${cql})`;
+        const safeSpaceKey = validateSpaceKey(args.space_key);
+        cql = `space = "${safeSpaceKey}" AND (${cql})`;
       }
       const result = await confluenceFetch('GET',
         `/wiki/rest/api/content/search?cql=${encodeURIComponent(cql)}&limit=${maxResults}&expand=space,version`
@@ -190,25 +209,25 @@ async function handleTool(name, args) {
     }
 
     case 'get_page': {
+      const bodyFormat = validateBodyFormat(args.body_format);
       let page;
       if (args.page_id) {
         requireString(args.page_id, 'page_id');
         page = await confluenceFetch('GET',
-          `/wiki/rest/api/content/${encodeURIComponent(args.page_id)}?expand=body.${args.body_format || 'storage'},version,space,metadata.labels`
+          `/wiki/rest/api/content/${encodeURIComponent(args.page_id)}?expand=body.${bodyFormat},version,space,metadata.labels`
         );
       } else if (args.title && args.space_key) {
         requireString(args.title, 'title');
-        requireString(args.space_key, 'space_key');
+        const safeSpaceKey = validateSpaceKey(args.space_key);
         const results = await confluenceFetch('GET',
-          `/wiki/rest/api/content?title=${encodeURIComponent(args.title)}&spaceKey=${encodeURIComponent(args.space_key)}&expand=body.${args.body_format || 'storage'},version,metadata.labels`
+          `/wiki/rest/api/content?title=${encodeURIComponent(args.title)}&spaceKey=${encodeURIComponent(safeSpaceKey)}&expand=body.${bodyFormat},version,metadata.labels`
         );
         page = results.results?.[0];
-        if (!page) return { error: `Page not found: "${args.title}" in space ${args.space_key}` };
+        if (!page) return { error: `Page not found: "${args.title}" in space ${safeSpaceKey}` };
       } else {
         return { error: 'Provide either page_id or both title and space_key' };
       }
 
-      const bodyFormat = args.body_format || 'storage';
       return {
         id: page.id, title: page.title,
         space: page.space?.key,
@@ -221,13 +240,13 @@ async function handleTool(name, args) {
     }
 
     case 'create_page': {
-      requireString(args.space_key, 'space_key');
+      const spaceKey = validateSpaceKey(args.space_key);
       requireString(args.title, 'title');
       requireString(args.body, 'body');
       const payload = {
         type: 'page',
         title: args.title,
-        space: { key: args.space_key },
+        space: { key: spaceKey },
         body: {
           storage: {
             value: args.body,
@@ -249,7 +268,7 @@ async function handleTool(name, args) {
         );
       }
 
-      return { id: result.id, title: result.title, space: args.space_key };
+      return { id: result.id, title: result.title, space: spaceKey };
     }
 
     case 'update_page': {
@@ -289,9 +308,9 @@ async function handleTool(name, args) {
     }
 
     case 'get_space': {
-      requireString(args.space_key, 'space_key');
+      const spaceKey = validateSpaceKey(args.space_key);
       const space = await confluenceFetch('GET',
-        `/wiki/rest/api/space/${encodeURIComponent(args.space_key)}?expand=description.plain,homepage`
+        `/wiki/rest/api/space/${encodeURIComponent(spaceKey)}?expand=description.plain,homepage`
       );
       return {
         key: space.key, name: space.name,

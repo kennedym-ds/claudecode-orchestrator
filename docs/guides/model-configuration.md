@@ -78,7 +78,7 @@ Valid model shortnames: `opus`, `sonnet`, `haiku`, or full model IDs like `claud
 1. **Start with the standard profile** — it covers most needs
 2. **Use `/route` before `/conduct`** — assess complexity to avoid over-provisioning
 3. **Set `--max-budget-usd`** for hard cost caps: `claude --max-budget-usd 5`
-4. **Monitor with `/cost`** during long sessions
+4. **Monitor with `/status`** during long sessions
 5. **Compact at milestones** — `/compact` reduces token waste
 6. **Use `/clear` between tasks** — don't let unrelated context accumulate
 7. **Target ≤25% heavy-tier usage** — the budget-gatekeeper skill tracks this

@@ -37,7 +37,7 @@
    Or copy a profile from `examples/`:
    - `settings-budget.json` — Haiku default, minimal Opus
    - `settings-standard.json` — Sonnet default, Opus for reviews (recommended)
-   - `settings-premium.json` — Opus everywhere
+   - `settings-premium.json` — Opus for heavy/default, Sonnet for fast
 
 4. **Initialize session artifacts** (required for state-survives-compaction to work):
    ```bash

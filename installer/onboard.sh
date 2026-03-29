@@ -160,7 +160,15 @@ echo ""
 echo -e "${DIM}  Each integration is optional — press Enter to skip any step.${NC}"
 echo -e "${DIM}  Credentials are stored in your Claude settings (not committed to git).${NC}"
 
-declare -A RESULTS
+# Track results per integration (Bash 3.2 compatible — no associative arrays)
+RESULT_GitHub="missing"
+RESULT_Jira="missing"
+RESULT_Confluence="missing"
+RESULT_Jama="missing"
+RESULT_Models="missing"
+
+get_result() { eval echo "\$RESULT_$1"; }
+set_result() { eval "RESULT_$1=\"$2\""; }
 
 # ────────────────────────────────────────
 # GitHub
@@ -168,7 +176,7 @@ declare -A RESULTS
 section "GitHub Integration" "Required for PR workflows, issue management, and CI/CD checks."
 
 if $NON_INTERACTIVE; then
-  if [[ -n "${GITHUB_TOKEN:-}" ]]; then RESULTS[GitHub]="configured"; else RESULTS[GitHub]="missing"; fi
+  if [[ -n "${GITHUB_TOKEN:-}" ]]; then set_result GitHub configured; else set_result GitHub missing; fi
 elif prompt_yn "Configure GitHub?" "y"; then
   echo ""
   echo -e "${DIM}  Create a token at: https://github.com/settings/tokens${NC}"
@@ -177,12 +185,12 @@ elif prompt_yn "Configure GitHub?" "y"; then
   GH_TOKEN=$(prompt_value "GitHub Personal Access Token (PAT)")
   if [[ -n "$GH_TOKEN" ]]; then
     set_env_var "$SETTINGS_PATH" "GITHUB_TOKEN" "$GH_TOKEN"
-    RESULTS[GitHub]="configured"
+    set_result GitHub configured
   else
-    RESULTS[GitHub]="skipped"
+    set_result GitHub skipped
   fi
 else
-  RESULTS[GitHub]="skipped"
+  set_result GitHub skipped
 fi
 
 # ────────────────────────────────────────
@@ -191,7 +199,7 @@ fi
 section "Jira Integration" "Required for issue context, sprint planning, and story generation."
 
 if $NON_INTERACTIVE; then
-  if [[ -n "${JIRA_BASE_URL:-}" ]]; then RESULTS[Jira]="configured"; else RESULTS[Jira]="missing"; fi
+  if [[ -n "${JIRA_BASE_URL:-}" ]]; then set_result Jira configured; else set_result Jira missing; fi
 elif prompt_yn "Configure Jira?" "n"; then
   echo ""
   echo -e "${DIM}  Create an API token at: https://id.atlassian.com/manage-profile/security/api-tokens${NC}"
@@ -204,13 +212,13 @@ elif prompt_yn "Configure Jira?" "n"; then
     set_env_var "$SETTINGS_PATH" "JIRA_BASE_URL" "$JIRA_URL"
     set_env_var "$SETTINGS_PATH" "JIRA_USER_EMAIL" "$JIRA_EMAIL"
     set_env_var "$SETTINGS_PATH" "JIRA_API_TOKEN" "$JIRA_TOKEN"
-    RESULTS[Jira]="configured"
+    set_result Jira configured
   else
     echo -e "${YELLOW}  Incomplete — skipping Jira setup.${NC}"
-    RESULTS[Jira]="skipped"
+    set_result Jira skipped
   fi
 else
-  RESULTS[Jira]="skipped"
+  set_result Jira skipped
 fi
 
 # ────────────────────────────────────────
@@ -219,7 +227,7 @@ fi
 section "Confluence Integration" "Required for publishing plans/reviews and searching knowledge base."
 
 if $NON_INTERACTIVE; then
-  if [[ -n "${CONFLUENCE_BASE_URL:-}" ]]; then RESULTS[Confluence]="configured"; else RESULTS[Confluence]="missing"; fi
+  if [[ -n "${CONFLUENCE_BASE_URL:-}" ]]; then set_result Confluence configured; else set_result Confluence missing; fi
 elif prompt_yn "Configure Confluence?" "n"; then
   echo ""
   echo -e "${DIM}  Uses the same Atlassian API token as Jira.${NC}"
@@ -232,13 +240,13 @@ elif prompt_yn "Configure Confluence?" "n"; then
     set_env_var "$SETTINGS_PATH" "CONFLUENCE_BASE_URL" "$CONF_URL"
     set_env_var "$SETTINGS_PATH" "CONFLUENCE_USER_EMAIL" "$CONF_EMAIL"
     set_env_var "$SETTINGS_PATH" "CONFLUENCE_API_TOKEN" "$CONF_TOKEN"
-    RESULTS[Confluence]="configured"
+    set_result Confluence configured
   else
     echo -e "${YELLOW}  Incomplete — skipping Confluence setup.${NC}"
-    RESULTS[Confluence]="skipped"
+    set_result Confluence skipped
   fi
 else
-  RESULTS[Confluence]="skipped"
+  set_result Confluence skipped
 fi
 
 # ────────────────────────────────────────
@@ -247,7 +255,7 @@ fi
 section "Jama Connect Integration" "Required for requirements tracing and test coverage mapping."
 
 if $NON_INTERACTIVE; then
-  if [[ -n "${JAMA_BASE_URL:-}" ]]; then RESULTS[Jama]="configured"; else RESULTS[Jama]="missing"; fi
+  if [[ -n "${JAMA_BASE_URL:-}" ]]; then set_result Jama configured; else set_result Jama missing; fi
 elif prompt_yn "Configure Jama Connect?" "n"; then
   echo ""
   echo -e "${DIM}  Uses OAuth 2.0 client credentials (client_id + client_secret).${NC}"
@@ -261,13 +269,13 @@ elif prompt_yn "Configure Jama Connect?" "n"; then
     set_env_var "$SETTINGS_PATH" "JAMA_BASE_URL" "$JAMA_URL"
     set_env_var "$SETTINGS_PATH" "JAMA_CLIENT_ID" "$JAMA_ID"
     set_env_var "$SETTINGS_PATH" "JAMA_CLIENT_SECRET" "$JAMA_SECRET"
-    RESULTS[Jama]="configured"
+    set_result Jama configured
   else
     echo -e "${YELLOW}  Incomplete — skipping Jama setup.${NC}"
-    RESULTS[Jama]="skipped"
+    set_result Jama skipped
   fi
 else
-  RESULTS[Jama]="skipped"
+  set_result Jama skipped
 fi
 
 # ────────────────────────────────────────
@@ -276,7 +284,7 @@ fi
 section "Model Configuration" "Set default AI model tiers for the orchestrator."
 
 if $NON_INTERACTIVE; then
-  RESULTS[Models]="skipped"
+  set_result Models skipped
 elif prompt_yn "Configure model tiers? (defaults are recommended)" "n"; then
   echo ""
   echo -e "${DIM}  Profiles: standard (recommended), budget (cost-saving), premium (max quality)${NC}"
@@ -300,9 +308,9 @@ elif prompt_yn "Configure model tiers? (defaults are recommended)" "n"; then
       set_env_var "$SETTINGS_PATH" "ORCH_MODEL_FAST" "claude-haiku-4-5-20250315"
       ;;
   esac
-  RESULTS[Models]="configured"
+  set_result Models configured
 else
-  RESULTS[Models]="skipped"
+  set_result Models skipped
 fi
 
 # ────────────────────────────────────────
@@ -313,7 +321,7 @@ echo -e "${YELLOW}  ── Summary ──${NC}"
 echo ""
 
 for key in GitHub Jira Confluence Jama Models; do
-  status="${RESULTS[$key]:-missing}"
+  status=$(get_result "$key")
   case "$status" in
     configured) status_ok "$key" ;;
     skipped)    status_skip "$key" ;;
@@ -324,8 +332,8 @@ done
 echo ""
 
 any_configured=false
-for key in "${!RESULTS[@]}"; do
-  if [[ "${RESULTS[$key]}" == "configured" ]]; then any_configured=true; break; fi
+for key in GitHub Jira Confluence Jama Models; do
+  if [[ "$(get_result "$key")" == "configured" ]]; then any_configured=true; break; fi
 done
 
 if $any_configured; then
@@ -334,8 +342,8 @@ if $any_configured; then
 fi
 
 skipped=0
-for key in "${!RESULTS[@]}"; do
-  if [[ "${RESULTS[$key]}" == "skipped" ]]; then skipped=$((skipped + 1)); fi
+for key in GitHub Jira Confluence Jama Models; do
+  if [[ "$(get_result "$key")" == "skipped" ]]; then skipped=$((skipped + 1)); fi
 done
 
 if [[ $skipped -gt 0 ]]; then

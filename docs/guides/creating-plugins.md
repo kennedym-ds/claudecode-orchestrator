@@ -74,6 +74,8 @@ my-plugin/
 
 **Important:** Don't put `skills/`, `agents/`, `commands/`, or `hooks/` inside `.claude-plugin/`. Only `plugin.json` goes there.
 
+> **Note:** The layout above uses root-level `skills/`, `agents/`, `commands/` folders. This project's plugins (cc-sdlc-core, cc-jira, etc.) use `.claude/agents/`, `.claude/skills/`, `.claude/commands/` instead — set your `plugin.json` `components` paths accordingly. Both conventions work; just ensure `plugin.json` matches your actual directory structure.
+
 ### 4. Test locally
 
 ```bash
@@ -395,9 +397,9 @@ The cc-sdlc suite uses a multi-plugin architecture where plugins are composed at
 │ core       │ standards  │ cc-confluence  │ cc-jama         │
 │            │            │                │                 │
 │ 19 agents  │ 27 skills  │ 2 agents       │ 1 agent each    │
-│ 18 skills  │ (20 lang + │ 2 skills       │ 2 skills each   │
+│ 18 skills  │ (20 lang + │ 2 skills       │ 2-3 skills each │
 │ 22 cmds    │  7 domain) │ 2 cmds         │ 2 cmds each     │
-│ 14 hooks   │            │ GitHub MCP     │ Custom MCPs     │
+│ 17 hooks   │            │ GitHub MCP     │ Custom MCPs     │
 │ 6 rules    │            │                │                 │
 └────────────┴────────────┴────────────────┴─────────────────┘
 ```

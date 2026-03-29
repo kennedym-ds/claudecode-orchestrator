@@ -59,15 +59,18 @@ if [[ "$PLUGINS" == "all" ]]; then
   PLUGINS="core,standards,github,jira,confluence,jama"
 fi
 
-# Map short names to plugin directories
-declare -A PLUGIN_MAP=(
-  [core]="cc-sdlc-core"
-  [standards]="cc-sdlc-standards"
-  [github]="cc-github"
-  [jira]="cc-jira"
-  [confluence]="cc-confluence"
-  [jama]="cc-jama"
-)
+# Map short names to plugin directories (Bash 3.2 compatible — no associative arrays)
+plugin_lookup() {
+  case "$1" in
+    core)        echo "cc-sdlc-core" ;;
+    standards)   echo "cc-sdlc-standards" ;;
+    github)      echo "cc-github" ;;
+    jira)        echo "cc-jira" ;;
+    confluence)  echo "cc-confluence" ;;
+    jama)        echo "cc-jama" ;;
+    *)           echo "" ;;
+  esac
+}
 
 # Validate target
 if [[ ! -d "$TARGET_DIR" ]]; then
@@ -86,7 +89,7 @@ INSTALLED=0
 
 for plugin_short in "${PLUGIN_LIST[@]}"; do
   plugin_short=$(echo "$plugin_short" | tr -d ' ')
-  plugin_dir="${PLUGIN_MAP[$plugin_short]:-}"
+  plugin_dir=$(plugin_lookup "$plugin_short")
 
   if [[ -z "$plugin_dir" ]]; then
     warn "Unknown plugin: $plugin_short (skipping)"

@@ -274,5 +274,5 @@ bash scripts/run-smoke-tests.sh                  # macOS/Linux
 ```
 
 Expected results:
-- **Validation:** 0 errors, 0-2 warnings (audit/status commands may warn about no `$ARGUMENTS` — this is normal)
-- **Smoke tests:** 59/59 passed
+- **Validation:** 0 errors, up to 6 warnings (commands without `$ARGUMENTS` — this is normal for commands like audit, status, and plugin commands)
+- **Smoke tests:** All smoke tests passed (no failures)

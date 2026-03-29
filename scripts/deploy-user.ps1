@@ -49,16 +49,42 @@ if ($Uninstall) {
         }
         Remove-Item $Manifest -Force
 
-        # Restore backed-up settings if available
-        $backupDir = Join-Path $Target '.orchestrator-backup'
+        # Strip orchestrator hooks and env from settings.json
         $settingsFile = Join-Path $Target 'settings.json'
-        if (Test-Path $backupDir) {
-            $latestBackup = Get-ChildItem "$backupDir\settings.json.*" -ErrorAction SilentlyContinue |
-                Sort-Object LastWriteTime -Descending | Select-Object -First 1
-            if ($latestBackup) {
-                Copy-Item $latestBackup.FullName $settingsFile -Force
-                Write-Host "  Restored settings.json from backup: $($latestBackup.Name)"
-            }
+        $hooksTarget = (Join-Path $Target 'hooks\scripts') -replace '\\', '/'
+        if ((Test-Path $settingsFile) -and (Get-Command node -ErrorAction SilentlyContinue)) {
+            $cleanScript = @'
+const fs = require('fs');
+const settingsPath = process.argv[1];
+const hooksDir = process.argv[2];
+let settings;
+try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8').replace(/^\uFEFF/, '')); } catch { process.exit(0); }
+if (settings.hooks) {
+  for (const [event, groups] of Object.entries(settings.hooks)) {
+    if (!Array.isArray(groups)) continue;
+    settings.hooks[event] = groups.filter(group => {
+      const hooks = group.hooks || [];
+      return !hooks.some(h => h.command && h.command.includes(hooksDir));
+    });
+    if (settings.hooks[event].length === 0) delete settings.hooks[event];
+  }
+  if (Object.keys(settings.hooks).length === 0) delete settings.hooks;
+}
+if (settings.env) {
+  delete settings.env.ORCH_MODEL_HEAVY;
+  delete settings.env.ORCH_MODEL_DEFAULT;
+  delete settings.env.ORCH_MODEL_FAST;
+  if (Object.keys(settings.env).length === 0) delete settings.env;
+}
+if (Object.keys(settings).length === 0) {
+  fs.unlinkSync(settingsPath);
+  console.log('  Removed empty settings.json');
+} else {
+  fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+  console.log('  Cleaned orchestrator entries from settings.json');
+}
+'@
+            $cleanScript | node - ($settingsFile -replace '\\', '/') $hooksTarget
         }
 
         Write-Host "Uninstall complete."
@@ -125,52 +151,30 @@ if (-not $DryRun) {
         Copy-Item $settingsFile (Join-Path $backupDir "settings.json.$(Get-Date -Format 'yyyyMMddHHmmss')")
     }
 
-    $settings = @{}
-    if (Test-Path $settingsFile) {
-        try {
-            $raw = Get-Content $settingsFile -Raw | ConvertFrom-Json
-            $raw.PSObject.Properties | ForEach-Object { $settings[$_.Name] = $_.Value }
-        } catch {}
-    }
-
-    # Ensure env block with model tiers
-    if (-not $settings.ContainsKey('env')) { $settings['env'] = @{} }
-    $env = $settings['env']
-    if ($env -is [pscustomobject]) {
-        $envHash = @{}
-        $env.PSObject.Properties | ForEach-Object { $envHash[$_.Name] = $_.Value }
-        $settings['env'] = $envHash
-        $env = $envHash
-    }
-    if (-not $env.ContainsKey('ORCH_MODEL_HEAVY')) { $env['ORCH_MODEL_HEAVY'] = 'claude-opus-4-6-20260320' }
-    if (-not $env.ContainsKey('ORCH_MODEL_DEFAULT')) { $env['ORCH_MODEL_DEFAULT'] = 'claude-sonnet-4-6-20260320' }
-    if (-not $env.ContainsKey('ORCH_MODEL_FAST')) { $env['ORCH_MODEL_FAST'] = 'claude-haiku-4-5-20250315' }
-
-    # Build hooks with absolute paths — use Node.js for JSON to avoid
-    # PowerShell 5.1 single-element array unwrapping and UTF-8 BOM issues
+    # Build hook config — merge with existing user hooks, quote paths
+    # Use Node.js for JSON to avoid PowerShell 5.1 array unwrapping and UTF-8 BOM issues
     $hooksAbs = ($hooksTarget -replace '\\', '/')
-    $existingEnvJson = ($settings['env'] | ConvertTo-Json -Compress)
-    $nodeScript = @"
+    $nodeScript = @'
 const fs = require('fs');
 const path = require('path');
-const settingsFile = process.argv[1];
+const settingsPath = process.argv[1];
 const hooksDir = process.argv[2];
 
 let settings = {};
-try { settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8').replace(/^\uFEFF/, '')); } catch {}
+try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8').replace(/^\uFEFF/, '')); } catch {}
 
-// Preserve existing env vars, add defaults
+// Ensure env block with model tiers
 if (!settings.env) settings.env = {};
 if (!settings.env.ORCH_MODEL_HEAVY) settings.env.ORCH_MODEL_HEAVY = 'claude-opus-4-6-20260320';
 if (!settings.env.ORCH_MODEL_DEFAULT) settings.env.ORCH_MODEL_DEFAULT = 'claude-sonnet-4-6-20260320';
 if (!settings.env.ORCH_MODEL_FAST) settings.env.ORCH_MODEL_FAST = 'claude-haiku-4-5-20250315';
 
-// Merge any env from PowerShell layer
-const psEnv = $existingEnvJson;
-Object.assign(settings.env, psEnv);
-
-const absHook = (script) => ({ type: 'command', command: 'node ' + path.join(hooksDir, script).replace(/\\\\/g, '/') });
-settings.hooks = {
+// Build hooks with absolute paths (quoted for paths with spaces)
+const absHook = (script) => {
+  const p = path.join(hooksDir, script).replace(/\\/g, '/');
+  return { type: 'command', command: 'node "' + p + '"' };
+};
+const orchHooks = {
   SessionStart: [{ hooks: [{ ...absHook('session-start.js'), once: true }] }],
   UserPromptSubmit: [{ hooks: [absHook('secret-detector.js')] }],
   PreToolUse: [{ matcher: 'Bash', hooks: [absHook('pre-bash-safety.js'), absHook('deploy-guard.js')] }],
@@ -191,8 +195,19 @@ settings.hooks = {
   SessionEnd: [{ hooks: [absHook('session-end.js')] }]
 };
 
-fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2) + '\n');
-"@
+// Merge: preserve user hooks, replace orchestrator hooks (identified by hooksDir in command)
+if (!settings.hooks) settings.hooks = {};
+for (const [event, orchGroups] of Object.entries(orchHooks)) {
+  const existing = settings.hooks[event] || [];
+  const userGroups = existing.filter(group => {
+    const hooks = group.hooks || [];
+    return !hooks.some(h => h.command && h.command.includes(hooksDir));
+  });
+  settings.hooks[event] = [...userGroups, ...orchGroups];
+}
+
+fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+'@
     $nodeScript | node - ($settingsFile -replace '\\', '/') ($hooksAbs)
     Write-Host "Settings merged at $settingsFile"
 }

@@ -2,7 +2,7 @@
 /**
  * cc-jama MCP Server — Jama Connect REST API integration for Claude Code.
  *
- * Tools: get_items, search_items, get_item_children, get_relationships,
+ * Tools: get_items, get_item, search_items, get_item_children, get_relationships,
  *        get_test_runs, get_item_types, get_projects
  *
  * Auth: OAuth 2.0 client credentials (client_id + client_secret)

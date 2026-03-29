@@ -18,8 +18,8 @@ A collection of Claude Code plugins that orchestrate development workflows from 
 
 ```bash
 # Clone
-git clone https://github.com/kennedym-ds/cc-sdlc.git
-cd cc-sdlc
+git clone https://github.com/kennedym-ds/claudecode-orchestrator.git
+cd claudecode-orchestrator
 
 # Install core + standards to your project
 bash installer/install.sh --target /path/to/your/project

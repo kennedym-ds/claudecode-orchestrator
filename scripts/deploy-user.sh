@@ -55,15 +55,41 @@ if $UNINSTALL; then
     fi
     rm "$MANIFEST"
 
-    # Restore backed-up settings if available
-    BACKUP_DIR="$TARGET/.orchestrator-backup"
+    # Strip orchestrator hooks and env from settings.json
     SETTINGS_FILE="$TARGET/settings.json"
-    if [ -d "$BACKUP_DIR" ]; then
-      LATEST_BACKUP=$(ls -t "$BACKUP_DIR"/settings.json.* 2>/dev/null | head -1)
-      if [ -n "$LATEST_BACKUP" ]; then
-        cp "$LATEST_BACKUP" "$SETTINGS_FILE"
-        echo "  Restored settings.json from backup: $(basename "$LATEST_BACKUP")"
-      fi
+    HOOKS_TARGET="$TARGET/hooks/scripts"
+    if [ -f "$SETTINGS_FILE" ] && command -v node &>/dev/null; then
+      node - "$SETTINGS_FILE" "$HOOKS_TARGET" <<'CLEAN_SETTINGS'
+const fs = require('fs');
+const settingsPath = process.argv[1];
+const hooksDir = process.argv[2];
+let settings;
+try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); } catch { process.exit(0); }
+if (settings.hooks) {
+  for (const [event, groups] of Object.entries(settings.hooks)) {
+    if (!Array.isArray(groups)) continue;
+    settings.hooks[event] = groups.filter(group => {
+      const hooks = group.hooks || [];
+      return !hooks.some(h => h.command && h.command.includes(hooksDir));
+    });
+    if (settings.hooks[event].length === 0) delete settings.hooks[event];
+  }
+  if (Object.keys(settings.hooks).length === 0) delete settings.hooks;
+}
+if (settings.env) {
+  delete settings.env.ORCH_MODEL_HEAVY;
+  delete settings.env.ORCH_MODEL_DEFAULT;
+  delete settings.env.ORCH_MODEL_FAST;
+  if (Object.keys(settings.env).length === 0) delete settings.env;
+}
+if (Object.keys(settings).length === 0) {
+  fs.unlinkSync(settingsPath);
+  console.log('  Removed empty settings.json');
+} else {
+  fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+  console.log('  Cleaned orchestrator entries from settings.json');
+}
+CLEAN_SETTINGS
     fi
 
     echo "Uninstall complete."
@@ -136,9 +162,9 @@ if ! $DRY_RUN; then
     cp "$SETTINGS_FILE" "$BACKUP_DIR/settings.json.$(date +%Y%m%d%H%M%S)"
   fi
 
-  # Build hook config with absolute paths to deployed scripts
+  # Build hook config — merge with existing user hooks, quote paths
   if command -v node &>/dev/null; then
-    node -e "
+    node - "$SETTINGS_FILE" "$HOOKS_TARGET" <<'MERGE_SETTINGS'
 const fs = require('fs');
 const path = require('path');
 const settingsPath = process.argv[1];
@@ -155,9 +181,12 @@ if (!settings.env.ORCH_MODEL_HEAVY) settings.env.ORCH_MODEL_HEAVY = 'claude-opus
 if (!settings.env.ORCH_MODEL_DEFAULT) settings.env.ORCH_MODEL_DEFAULT = 'claude-sonnet-4-6-20260320';
 if (!settings.env.ORCH_MODEL_FAST) settings.env.ORCH_MODEL_FAST = 'claude-haiku-4-5-20250315';
 
-// Build hooks with absolute paths
-const absHook = (script) => ({ type: 'command', command: 'node ' + path.join(hooksDir, script) });
-settings.hooks = {
+// Build hooks with absolute paths (quoted for paths with spaces)
+const absHook = (script) => {
+  const p = path.join(hooksDir, script);
+  return { type: 'command', command: 'node "' + p + '"' };
+};
+const orchHooks = {
   SessionStart: [{ hooks: [{ ...absHook('session-start.js'), once: true }] }],
   UserPromptSubmit: [{ hooks: [absHook('secret-detector.js')] }],
   PreToolUse: [{ matcher: 'Bash', hooks: [absHook('pre-bash-safety.js'), absHook('deploy-guard.js')] }],
@@ -178,8 +207,20 @@ settings.hooks = {
   SessionEnd: [{ hooks: [absHook('session-end.js')] }],
 };
 
-fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-" -- "$SETTINGS_FILE" "$HOOKS_TARGET" 2>/dev/null && echo "Settings merged at $SETTINGS_FILE" || echo "Warning: settings merge skipped (node required)"
+// Merge: preserve user hooks, replace orchestrator hooks (identified by hooksDir in command)
+if (!settings.hooks) settings.hooks = {};
+for (const [event, orchGroups] of Object.entries(orchHooks)) {
+  const existing = settings.hooks[event] || [];
+  const userGroups = existing.filter(group => {
+    const hooks = group.hooks || [];
+    return !hooks.some(h => h.command && h.command.includes(hooksDir));
+  });
+  settings.hooks[event] = [...userGroups, ...orchGroups];
+}
+
+fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
+MERGE_SETTINGS
+    echo "Settings merged at $SETTINGS_FILE"
   else
     echo "Warning: settings merge skipped (node not found — install Node.js for full deployment)"
   fi

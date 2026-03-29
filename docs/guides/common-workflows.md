@@ -59,7 +59,7 @@ claude -p "review src/auth/login.ts and src/auth/session.ts for security and cor
 claude -p "/secure src/api/handlers/" --agent security-reviewer
 ```
 
-**Review output format:** Findings tagged with severity (CRITICAL, HIGH, MEDIUM, LOW) and categorized (Security, Correctness, Performance, Style).
+**Review output format:** Findings tagged with severity (BLOCKER, MAJOR, MINOR, NIT) and categorized (Security, Correctness, Performance, Style).
 
 ## 3. Planning Only
 

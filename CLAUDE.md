@@ -91,7 +91,7 @@ pwsh -File scripts/validate-assets.ps1
 - Fast tier: **fast** (Haiku 4.5 — triage, routing, simple hooks)
 - Heavy tier: **heavy** (Opus 4.6 — reviews, security, planning)
 - Use `--max-budget-usd` for hard cost caps
-- Use `/cost` to monitor spending mid-session
+- Use `/status` to monitor spending mid-session
 - Use `/clear` between unrelated tasks, `/compact` at milestones
 - Keep < 10 MCPs and < 80 tools active
 - Override models via `.claude/settings.json` → `env.ORCH_MODEL_HEAVY`, `ORCH_MODEL_DEFAULT`, `ORCH_MODEL_FAST`
