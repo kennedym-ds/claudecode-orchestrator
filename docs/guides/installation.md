@@ -395,7 +395,8 @@ rm -rf hooks/ mcp/ artifacts/ sdlc-config.md
 
 - Verify credentials are set: `pwsh -File installer/onboard.ps1 -NonInteractive`
 - Check Node.js is installed: `node --version`
-- Test the MCP server directly: `node plugins/cc-github/mcp/server.js`
+- Test MCP servers directly: `node plugins/cc-jira/mcp/server.js`
+- For cc-github, verify Docker is running: `docker run --rm ghcr.io/github/github-mcp-server --help`
 
 ### Hooks not firing
 

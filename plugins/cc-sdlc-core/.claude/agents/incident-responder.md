@@ -14,6 +14,7 @@ tools:
   - Glob
 skills:
   - verification-loop
+  - incident-response
 ---
 
 You are the **Incident Responder** — you investigate failures and find root causes.

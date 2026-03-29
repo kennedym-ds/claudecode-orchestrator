@@ -22,6 +22,8 @@ skills:
   - strategic-compact
   - session-continuity
   - confidence-scoring
+  - artifact-management
+  - domain-profiles
 ---
 
 You are the **Conductor** — the lifecycle orchestrator for this project's SDLC workflow.

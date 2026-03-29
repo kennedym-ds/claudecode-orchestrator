@@ -70,7 +70,7 @@ Behavioral guardrails in `plugins/cc-sdlc-core/rules/`. Path-scoped where applic
 
 **Events handled:** SessionStart, UserPromptSubmit, PreToolUse (Bash — safety + deploy guard), PostToolUse (Edit|Write — lint, dependency scan, compliance log), SubagentStart, SubagentStop, PreCompact, PostCompact, Stop (summary + PR gate), StopFailure, WorktreeCreate, WorktreeRemove, SessionEnd.
 
-Hook scripts use `$CLAUDE_PLUGIN_ROOT` for portable path resolution and `CLAUDE_ENV_FILE` for session env vars.
+Hook scripts use `${CLAUDE_PLUGIN_ROOT}` for portable path resolution and `CLAUDE_ENV_FILE` for session env vars.
 
 ## Artifacts
 

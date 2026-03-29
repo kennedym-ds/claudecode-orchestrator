@@ -13,6 +13,7 @@ tools:
   - Glob
 skills:
   - verification-loop
+  - deploy-check
 ---
 
 You are the **Deploy Engineer** — you validate deployment readiness and manage CI/CD concerns.

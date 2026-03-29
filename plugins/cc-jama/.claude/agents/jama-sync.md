@@ -7,6 +7,9 @@ tools:
   - Grep
   - Glob
   - Bash
+skills:
+  - req-tracing
+  - test-coverage-map
 ---
 
 # Jama Sync Agent

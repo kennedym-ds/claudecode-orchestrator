@@ -86,20 +86,20 @@ Model selection is tier-based and fully configurable. Three tiers map to task co
 | **conductor** | heavy | opus | project | Lifecycle routing, phase management |
 | **planner** | heavy | opus | project | Multi-phase planning, risk analysis |
 | **architect** | heavy | opus | project | Architecture design, ADRs |
-| **implementer** | default | sonnet | — | TDD execution, code changes |
+| **implementer** | default | sonnet | project | TDD execution, code changes |
 | **reviewer** | heavy | opus | project | Severity-tagged code review |
 | **researcher** | default | sonnet | project | Evidence gathering, citation |
-| **security-reviewer** | heavy | opus | — | OWASP security audit |
+| **security-reviewer** | heavy | opus | project | OWASP security audit |
 | **threat-modeler** | heavy | opus | project | STRIDE/DREAD analysis |
-| **red-team** | heavy | opus | — | Adversarial testing, edge cases |
+| **red-team** | heavy | opus | project | Adversarial testing, edge cases |
 | **spec-builder** | default | sonnet | project | Interactive specification elicitation |
 | **req-analyst** | fast | haiku | — | Story decomposition, acceptance criteria |
 | **estimator** | fast | haiku | project | T-shirt sizing, story points |
 | **pair-programmer** | default | sonnet | project | Collaborative coding |
 | **test-architect** | default | sonnet | project | Test strategy and pyramid design |
-| **tdd-guide** | default | sonnet | — | Test-first enforcement |
-| **e2e-tester** | default | sonnet | — | End-to-end acceptance tests |
-| **deploy-engineer** | fast | haiku | — | Pre-deploy checklist, CI/CD validation |
+| **tdd-guide** | default | sonnet | project | Test-first enforcement |
+| **e2e-tester** | default | sonnet | project | End-to-end acceptance tests |
+| **deploy-engineer** | fast | haiku | project | Pre-deploy checklist, CI/CD validation |
 | **incident-responder** | default | sonnet | project | Root cause analysis, 5-why |
 | **doc-updater** | default | sonnet | — | Documentation sync |
 

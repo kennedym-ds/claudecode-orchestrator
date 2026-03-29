@@ -470,7 +470,7 @@ Add your hook to `plugins/cc-sdlc-core/hooks/hooks.json`:
         "hooks": [
           {
             "type": "command",
-            "command": "node $CLAUDE_PLUGIN_ROOT/hooks/scripts/my-hook.js"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/my-hook.js"
           }
         ]
       }
@@ -479,7 +479,7 @@ Add your hook to `plugins/cc-sdlc-core/hooks/hooks.json`:
 }
 ```
 
-**Important:** Use `$CLAUDE_PLUGIN_ROOT` for portable path resolution in plugin hooks.
+**Important:** Use `${CLAUDE_PLUGIN_ROOT}` for portable path resolution in plugin hooks.
 
 #### 3. Update documentation
 

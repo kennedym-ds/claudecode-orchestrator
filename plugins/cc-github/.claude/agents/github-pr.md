@@ -5,6 +5,7 @@ model: sonnet
 maxTurns: 15
 skills:
   - pr-workflow
+  - pr-review
 ---
 
 # GitHub PR Agent

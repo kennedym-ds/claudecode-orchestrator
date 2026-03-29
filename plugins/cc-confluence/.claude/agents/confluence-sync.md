@@ -7,6 +7,10 @@ tools:
   - Grep
   - Glob
   - Bash
+skills:
+  - publish-plan
+  - publish-review
+  - research-confluence
 ---
 
 # Confluence Sync Agent

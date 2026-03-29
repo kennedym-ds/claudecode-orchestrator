@@ -73,8 +73,6 @@ MCP servers are declared inside the plugin manifest at `.claude-plugin/plugin.js
   "agents": ["my-agent"],
   "commands": ["my-command"]
 }
-  }
-}
 ```
 
 ### package.json
