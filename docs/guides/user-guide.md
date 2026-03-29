@@ -82,7 +82,7 @@ The conductor is the lifecycle orchestrator. It never writes code directly — i
 2. **Planning** — Planner agent drafts a multi-phase implementation plan with success criteria, risks, and testing strategy.
 3. **PAUSE** — You review and approve the plan (or request changes).
 4. **Implementation** — Implementer agent executes each phase using TDD (write test → make it pass → refactor).
-5. **Review** — Reviewer agent audits changes with severity-tagged findings (CRITICAL, HIGH, MEDIUM, LOW).
+5. **Review** — Reviewer agent audits changes with severity-tagged findings (BLOCKER, MAJOR, MINOR, NIT).
 6. **PAUSE** — You review findings and approve or request fixes.
 7. **Complete** — Final report with summary, residual risks, and follow-up recommendations.
 

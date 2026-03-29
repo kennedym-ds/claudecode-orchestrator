@@ -84,7 +84,7 @@ if (Test-Path ".claude\settings.json") {
 
 # Plugins
 Write-Host "Plugins:"
-foreach ($plugin in @('cc-jira','cc-confluence','cc-jama')) {
+foreach ($plugin in @('cc-github','cc-jira','cc-confluence','cc-jama')) {
     if (Test-Path "plugins\$plugin\.claude-plugin\plugin.json") { Test-Pass "$plugin plugin" }
     else { Test-Fail "$plugin plugin - missing" }
 }

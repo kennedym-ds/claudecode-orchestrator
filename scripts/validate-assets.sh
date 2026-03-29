@@ -36,7 +36,7 @@ for manifest in plugins/*/.claude-plugin/plugin.json; do
   plugin_dir=$(dirname "$(dirname "$manifest")")
   plugin_name=$(basename "$plugin_dir")
   if command -v node &>/dev/null; then
-    if ! node -e "JSON.parse(require('fs').readFileSync('$manifest','utf8'))" 2>/dev/null; then
+    if ! node -e "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'))" -- "$manifest" 2>/dev/null; then
       err "Plugin $plugin_name: invalid plugin.json"
     fi
   fi

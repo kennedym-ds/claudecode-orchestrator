@@ -27,12 +27,17 @@ if (-not (Test-Path $artifactsRoot)) {
     exit 0
 }
 
-$cutoff = (Get-Date).AddDays(-$RetentionDays)
 $removedCount = 0
 $removedSize = 0
 
-# Directories that contain timestamped session artifacts
-$cleanableDirs = @('plans', 'reviews', 'research', 'security', 'sessions')
+# Per-directory retention aligned with artifact-management skill
+$dirRetention = @{
+    'plans'    = $RetentionDays   # default 30; skill says "until project complete"
+    'reviews'  = $RetentionDays   # skill: 30 days
+    'research' = $RetentionDays   # skill: 30 days
+    'security' = 90               # skill: 90 days
+    'sessions' = 7                # skill: 7 days
+}
 
 # Files/dirs to always preserve
 $preservePaths = @(
@@ -41,10 +46,11 @@ $preservePaths = @(
     (Join-Path $artifactsRoot 'decisions')
 )
 
-foreach ($dir in $cleanableDirs) {
+foreach ($dir in $dirRetention.Keys) {
     $dirPath = Join-Path $artifactsRoot $dir
     if (-not (Test-Path $dirPath)) { continue }
 
+    $cutoff = (Get-Date).AddDays(-$dirRetention[$dir])
     Get-ChildItem -Path $dirPath -Recurse -File | Where-Object {
         $_.LastWriteTime -lt $cutoff
     } | ForEach-Object {

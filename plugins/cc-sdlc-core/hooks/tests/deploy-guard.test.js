@@ -17,6 +17,7 @@ const DEPLOY_PATTERNS = [
   /git\s+push.*--force.*main/i,
   /git\s+push.*--force.*master/i,
   /git\s+push.*--force.*release/i,
+  /git\s+push.*--force-all/i,
   /docker\s+push.*prod/i,
 ];
 
@@ -40,6 +41,7 @@ describe('deploy-guard: blocks production deployments', () => {
     ['git push origin --force main', 'force push to main'],
     ['git push --force origin master', 'force push to master'],
     ['git push --force origin release/v2.0', 'force push to release branch'],
+    ['git push --force-all origin', 'force push all refs'],
     ['docker push myrepo/app:prod', 'docker push to prod tag'],
     ['docker push registry.io/app:prod-latest', 'docker push prod-latest'],
   ];

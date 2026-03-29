@@ -207,7 +207,7 @@ Choose which plugins to install based on your needs:
 
 | Plugin | Short name | What it provides | When to install |
 |--------|-----------|------------------|-----------------|
-| **cc-sdlc-core** | `core` | 19 agents, 18 skills, 22 commands, 14 hooks, 6 rules | Always (required) |
+| **cc-sdlc-core** | `core` | 19 agents, 18 skills, 22 commands, 17 hooks, 6 rules | Always (required) |
 | **cc-sdlc-standards** | `standards` | 20 language standards, 7 domain overlays | Always (recommended) |
 | **cc-github** | `github` | PR workflows, issue triage, GitHub MCP | If using GitHub |
 | **cc-jira** | `jira` | Sprint planning, story generation, Jira MCP | If using Jira |

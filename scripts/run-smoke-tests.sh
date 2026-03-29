@@ -97,7 +97,7 @@ fi
 
 # Test 7: Integration plugins
 echo "Plugins:"
-for plugin in cc-jira cc-confluence cc-jama; do
+for plugin in cc-github cc-jira cc-confluence cc-jama; do
   if [ -f "plugins/$plugin/.claude-plugin/plugin.json" ]; then
     test_pass "$plugin plugin"
   else
