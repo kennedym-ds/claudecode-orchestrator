@@ -137,6 +137,26 @@ For high-risk tasks, the conductor runs three independent reviews in parallel:
 
 All three must reach consensus before the conductor marks the phase complete.
 
+### Team Mode (DEEP/ULTRADEEP)
+
+For large DEEP or ULTRADEEP tasks, you can enable Agent Teams to run reviewers, researchers, or implementers in parallel. Teams require opt-in and cost approximately 7x a single session.
+
+```bash
+# Enable teams in settings first (see installation guide)
+# Then use the --team flag:
+/conduct --team Add OAuth2 authentication with GitHub and Google providers
+```
+
+Three teams are available:
+
+| Team | Members | When Used |
+|------|---------|-----------|
+| `review-team` | reviewer + security-reviewer + threat-modeler (Opus) | DEEP/ULTRADEEP review phases |
+| `research-team` | 2–3 researchers (Sonnet) | DEEP/ULTRADEEP research phases |
+| `implement-team` | 2 implementers in isolated worktrees (Sonnet) | ULTRADEEP only, zero-coupling modules |
+
+See [Using Agent Teams](using-agent-teams.md) for full setup and usage details.
+
 ---
 
 ## Core Workflows
@@ -508,7 +528,12 @@ claude --agent conductor --max-budget-usd 5
 | Command | Purpose | When to Use |
 |---------|---------|-------------|
 | `/conduct <task>` | Full lifecycle orchestration | Multi-phase work |
+| `/conduct --team <task>` | Full lifecycle with Agent Teams for DEEP/ULTRADEEP phases | Large parallel tasks |
 | `/route <task>` | Assess complexity without executing | Before starting, to preview workflow |
+| `/team list` | List available team definitions | Before assembling a team |
+| `/team assemble <name>` | Manually assemble a named team | When auto-assembly not configured |
+| `/team status` | Show active team progress | Mid-team-session monitoring |
+| `/team cancel` | Cancel active team | When a team needs to be stopped |
 | `/status` | Session state, phase progress, budget | Mid-session checkpoints |
 | `/compact` | Strategic context compaction | Long sessions, at milestones |
 

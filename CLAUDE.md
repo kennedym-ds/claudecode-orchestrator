@@ -1,8 +1,8 @@
 # cc-sdlc — Project Playbook
 
-> **Status:** Active · **Version:** 2.0.0
+> **Status:** Active · **Version:** 3.0.0
 
-Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 54 skills, 30 commands, hook-driven quality gates, complexity-based routing.
+Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 55 skills, 31 commands, 20 hooks, hook-driven quality gates, complexity-based routing, optional Agent Teams for parallel execution.
 
 ## Persona
 
@@ -21,9 +21,11 @@ You are a **Senior Principal Engineer** — pragmatic, no-hype, no-bullshit. Und
 All complex tasks follow: **Conductor → Plan → Implement → Review → Complete**
 
 - Start with `/conduct` for multi-phase work
+- Start with `/conduct --team` to enable Agent Teams for DEEP/ULTRADEEP phases
 - Start with `/plan` for planning only
 - Start with `/review` for code review only
 - Use `/route` to assess complexity before choosing workflow depth
+- Use `/team` to manage Agent Teams directly
 
 ## Model Tiers
 
@@ -31,20 +33,32 @@ Three configurable tiers mapped to task complexity. Override in `.claude/setting
 
 | Tier | Default Model | Role | Used By |
 |------|--------------|------|--------|
-| **heavy** | claude-opus-4-6-20260320 | Judgment, review, planning | conductor, planner, architect, reviewer, security-reviewer, threat-modeler, red-team |
-| **default** | claude-sonnet-4-6-20260320 | Implementation, research, docs | implementer, researcher, spec-builder, pair-programmer, test-architect, tdd-guide, e2e-tester, incident-responder, doc-updater |
+| **heavy** | claude-opus-4-6-20260320 | Judgment, review, planning | conductor, planner, architect, reviewer, security-reviewer, threat-modeler, red-team, review-team members |
+| **default** | claude-sonnet-4-6-20260320 | Implementation, research, docs | implementer, researcher, spec-builder, pair-programmer, test-architect, tdd-guide, e2e-tester, incident-responder, doc-updater, research-team members, implement-team members |
 | **fast** | claude-haiku-4-5-20250315 | Triage, routing, simple tasks | req-analyst, estimator, deploy-engineer, INSTANT routing |
 
 Switch models by editing `env` in `.claude/settings.json`. Agent frontmatter references tier names (`opus`, `sonnet`, `haiku`), settings resolve to model IDs.
 
 ## Routing Table
 
-| Complexity | Trigger | Agents | Model Tier |
-|-----------|---------|--------|------------|
-| INSTANT | Trivial fix, question | Direct response | fast |
-| STANDARD | Single-file change | Plan → Implement → Review | default |
-| DEEP | Multi-file feature | Research → Plan → Implement → Review → Security | heavy for review, default for impl |
-| ULTRADEEP | Architectural change | Research → Plan → Implement → Trilateral Review | heavy for all judgment roles |
+| Complexity | Trigger | Agents | Model Tier | Team Option |
+|-----------|---------|--------|------------|-------------|
+| INSTANT | Trivial fix, question | Direct response | fast | — |
+| STANDARD | Single-file change | Plan → Implement → Review | default | — |
+| DEEP | Multi-file feature | Research → Plan → Implement → Review → Security | heavy for review, default for impl | research-team, review-team |
+| ULTRADEEP | Architectural change | Research → Plan → Implement → Trilateral Review | heavy for all judgment roles | research-team, implement-team, review-team |
+
+## Agent Teams
+
+Optional parallel execution for DEEP/ULTRADEEP tasks. Requires `ORCH_TEAMS_ENABLED=true` and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. Teams cost ~7x a single session — conductor always presents estimate and requires confirmation.
+
+| Team | Members | Complexity |
+|------|---------|-----------|
+| `review-team` | reviewer + security-reviewer + threat-modeler (Opus) | DEEP/ULTRADEEP |
+| `research-team` | 2–3 researchers (Sonnet) | DEEP/ULTRADEEP |
+| `implement-team` | 2 implementers in worktrees (Sonnet) | ULTRADEEP only |
+
+See `docs/guides/using-agent-teams.md` for full setup.
 
 ## Agents
 
@@ -54,11 +68,11 @@ Switch models by editing `env` in `.claude/settings.json`. Agent frontmatter ref
 
 ## Commands
 
-30 commands across 6 plugins. Key entry points: `/conduct`, `/plan`, `/implement`, `/review`, `/research`, `/secure`, `/test`, `/architect`, `/spec`, `/estimate`, `/pair`, `/threat-model`, `/red-team`, `/incident`.
+31 commands across 6 plugins. Key entry points: `/conduct`, `/plan`, `/implement`, `/review`, `/research`, `/secure`, `/test`, `/architect`, `/spec`, `/estimate`, `/pair`, `/threat-model`, `/red-team`, `/incident`, `/team`.
 
 ## Skills
 
-54 skills: 18 core workflow skills, 20 language coding standards, 7 domain overlays, 9 integration skills.
+55 skills: 19 core workflow skills (including `team-routing`), 20 language coding standards, 7 domain overlays, 9 integration skills.
 
 ## Rules
 
@@ -66,9 +80,9 @@ Behavioral guardrails in `plugins/cc-sdlc-core/.claude/rules/`. Path-scoped wher
 
 ## Hooks
 
-17 hook scripts providing deterministic automation. Zero context cost.
+20 hook scripts providing deterministic automation. Zero context cost.
 
-**Events handled:** SessionStart, UserPromptSubmit, PreToolUse (Bash — safety + deploy guard), PostToolUse (Edit|Write — lint, dependency scan, compliance log), SubagentStart, SubagentStop, PreCompact, PostCompact, Stop (summary + PR gate), StopFailure, WorktreeCreate, WorktreeRemove, SessionEnd.
+**Events handled:** SessionStart, UserPromptSubmit, PreToolUse (Bash — safety + deploy guard), PostToolUse (Edit|Write — lint, dependency scan, compliance log), SubagentStart, SubagentStop, PreCompact, PostCompact, Stop (summary + PR gate), StopFailure, WorktreeCreate, WorktreeRemove, SessionEnd, **TeammateIdle** (team coordination), **TaskCreated** (budget gate, field validation), **TaskCompleted** (state update, synthesis marker).
 
 Hook scripts use `${CLAUDE_PLUGIN_ROOT}` for portable path resolution and `CLAUDE_ENV_FILE` for session env vars.
 
@@ -90,6 +104,7 @@ pwsh -File scripts/validate-assets.ps1
 - Default tier: **default** (Sonnet 4.6 — handles 80%+ of tasks)
 - Fast tier: **fast** (Haiku 4.5 — triage, routing, simple hooks)
 - Heavy tier: **heavy** (Opus 4.6 — reviews, security, planning)
+- Team sessions: **~7x** a single session — always confirm before assembling
 - Use `--max-budget-usd` for hard cost caps
 - Use `/status` to monitor spending mid-session
 - Use `/clear` between unrelated tasks, `/compact` at milestones

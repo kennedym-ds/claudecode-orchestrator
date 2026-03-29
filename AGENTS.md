@@ -1,9 +1,9 @@
 # cc-sdlc — Project Playbook
 
-> **Status:** Active  
-> **Version:** 2.0.0
+> **Status:** Active
+> **Version:** 3.0.0
 
-Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 54 skills, 30 commands, hook-driven quality gates, complexity-based routing.
+Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 55 skills, 31 commands, 20 hooks, hook-driven quality gates, complexity-based routing, optional Agent Teams for parallel execution.
 
 ---
 
@@ -13,7 +13,7 @@ Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 54 skills
 .claude-plugin/
   marketplace.json        → Plugin catalog (6 plugins)
 plugins/
-  cc-sdlc-core/           → Orchestration engine (19 agents, 18 skills, 22 commands, 17 hooks)
+  cc-sdlc-core/           → Orchestration engine (19 agents, 19 skills, 23 commands, 20 hooks)
   cc-sdlc-standards/      → 20 language + 7 domain coding standards
   cc-github/              → GitHub PR/issue workflows via MCP
   cc-jira/                → Jira integration via MCP
@@ -76,10 +76,15 @@ Model selection is tier-based and fully configurable. Three tiers map to task co
    - `settings-budget.json` — Haiku default/fast, Sonnet heavy
    - `settings-standard.json` — Sonnet default, Opus heavy, Haiku fast (recommended)
    - `settings-premium.json` — Opus heavy/default, Sonnet fast
+   - `settings-teams-disabled.json` — Standard models, teams runtime-ready but disabled
+   - `settings-teams-enabled.json` — Standard models, teams enabled (explicit `--team` flag)
+   - `settings-teams-premium.json` — Premium models, teams enabled with auto-routing
 
 ## Agent Roster (24 Agents)
 
 ### Core SDLC (19)
+
+> Teams are not standalone agents — they are compositions of existing agents managed by the conductor via the `team-routing` skill. See **Team Roster** below.
 
 | Agent | Tier | Model | Memory | Purpose |
 |-------|------|-------|--------|---------|
@@ -112,6 +117,20 @@ Model selection is tier-based and fully configurable. Three tiers map to task co
 | **jira-sync** | cc-jira | sonnet | Jira issue context |
 | **confluence-sync** | cc-confluence | sonnet | Confluence publish/search |
 | **jama-sync** | cc-jama | sonnet | Requirements tracing |
+
+### Team Roster (3 Teams)
+
+Teams run existing agents in parallel. Enabled only when `ORCH_TEAMS_ENABLED=true` and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. Cost ~7x a single session — conductor always confirms before assembly.
+
+| Team | Teammates | Models | Complexity | Requires |
+|------|-----------|--------|-----------|---------|
+| **review-team** | reviewer, security-reviewer, threat-modeler | Opus × 3 | DEEP/ULTRADEEP | `--team` flag or `ORCH_TEAM_AUTO_ROUTE=true` |
+| **research-team** | researcher-1, researcher-2, researcher-3* | Sonnet × 2–3 | DEEP/ULTRADEEP | `--team` flag or `ORCH_TEAM_AUTO_ROUTE=true` |
+| **implement-team** | implementer-1, implementer-2 | Sonnet × 2 (worktrees) | ULTRADEEP only | Explicit approval + zero-coupling confirmation |
+
+*researcher-3 only assembled when `ORCH_TEAM_SIZE_MAX >= 3` and complexity is ULTRADEEP.
+
+Team definitions in `plugins/cc-sdlc-core/.claude/teams/`. See `docs/guides/using-agent-teams.md`.
 
 ### Agent Frontmatter Reference
 
@@ -158,6 +177,7 @@ All agents use these Claude Code frontmatter fields:
 | `/doc` | Documentation generation |
 | `/audit` | Harness quality audit |
 | `/route` | Complexity-based task routing |
+| `/team` | Agent team management (list, assemble, status, cancel) |
 | `/status` | Session status |
 | `/compact` | Strategic context compaction |
 
@@ -188,6 +208,9 @@ Hooks are configured in `.claude/settings.json` (for standalone repo usage) and 
 | ✓ WorktreeCreate | — | worktree-create.js | Copy context to new worktree |
 | ✓ WorktreeRemove | — | worktree-remove.js | Log worktree removal |
 | ✓ SessionEnd | — | session-end.js | Archive session state |
+| ✓ TeammateIdle | — | teammate-idle.js | Log idle teammates, budget advisory (async, exit 0 only) |
+| ✓ TaskCreated | — | task-created.js | Validate task fields, enforce ORCH_TEAM_MAX_TASKS budget gate (sync, exit 2 to block) |
+| ✓ TaskCompleted | — | task-completed.js | Update team state, write synthesis marker for review-team (async, exit 0 only) |
 
 **Hook input schema:** All hooks receive JSON on stdin. Key fields use snake_case:
 - `tool_input.command` (PreToolUse Bash)
@@ -271,10 +294,10 @@ pwsh -File installer/install.ps1 -TargetPath C:\path\to\project
 ```
 artifacts/
 ├── plans/          # Planner, Implementer, Conductor
-├── reviews/        # Reviewer
-├── research/       # Researcher
+├── reviews/        # Reviewer; team-consensus-pending.md (synthesis signal)
+├── research/       # Researcher; {slug}-*.md (research-team outputs)
 ├── security/       # Security Reviewer
-├── sessions/       # Session state
+├── sessions/       # Session state, team-state.json, team-log.jsonl, delegation-log.jsonl
 ├── decisions/      # Architectural Decision Records
 ├── memory/         # Active context and session memory
 │   └── activeContext.md

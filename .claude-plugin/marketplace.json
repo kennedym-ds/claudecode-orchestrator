@@ -2,7 +2,7 @@
   "name": "cc-sdlc",
   "displayName": "CC-SDLC — Full Lifecycle Orchestration",
   "description": "Multi-plugin SDLC suite: lifecycle orchestration, universal coding standards, and integrations with GitHub, Jira, Confluence, and Jama.",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "author": "kennedym-ds",
   "repository": "https://github.com/kennedym-ds/claudecode-orchestrator",
   "plugins": [

@@ -34,6 +34,19 @@ Subagent delegations are automatically logged to `artifacts/sessions/delegation-
 | Estimated session cost | $2.00 | $5.00 |
 | Single agent turns | 30 | 60 |
 
+## Team Mode Limits
+
+When `ORCH_TEAMS_ENABLED=true`, additional limits apply:
+
+| Metric | Warning | Hard Limit |
+|--------|---------|------------|
+| Active teams per session | — | 1 (CC runtime enforces) |
+| Tasks per team | 10 | `ORCH_TEAM_MAX_TASKS` (default 20) |
+| Estimated team session cost | $10.00 | User-confirmed before assembly |
+| Teammates per team | — | `ORCH_TEAM_SIZE_MAX` (default 3) |
+
+Team sessions cost approximately **7x a single session**. The `team-routing` skill presents a cost estimate and requires explicit user confirmation (`y`) before assembling any team. Log team task completions from `delegation-log.jsonl` (event: `teammate_task_complete`) to track team budget consumption.
+
 When a **soft limit** is hit:
 - Report usage to the conductor
 - Suggest alternatives (downgrade tier, reduce scope, split into separate sessions)

@@ -65,3 +65,19 @@ Evaluate the task against these criteria to determine the routing tier:
 | Red-Team | — | — | — | heavy |
 | TDD-Guide | — | default | default | default |
 | Doc-Updater | — | default | default | default |
+
+## Team Routing Extension
+
+When `ORCH_TEAMS_ENABLED=true`, extend the routing decision for DEEP/ULTRADEEP tasks with team mode options. Teams are **never** used for INSTANT or STANDARD — cost does not justify it.
+
+| Complexity | Phase | Mode | Team | Condition |
+|-----------|-------|------|------|-----------|
+| DEEP | Research | team | research-team (2) | explicit `--team` or `ORCH_TEAM_AUTO_ROUTE=true` |
+| DEEP | Review | team | review-team | explicit `--team` or `ORCH_TEAM_AUTO_ROUTE=true` |
+| ULTRADEEP | Research | team | research-team (3) | explicit `--team` or `ORCH_TEAM_AUTO_ROUTE=true` |
+| ULTRADEEP | Implement | team | implement-team | explicit `--team`, modules confirmed non-overlapping |
+| ULTRADEEP | Review | team | review-team | explicit `--team` or `ORCH_TEAM_AUTO_ROUTE=true` |
+
+**Subagent mode is always available as fallback.** If teams are unavailable (env vars absent, assembly failure, display issues), fall back silently. Never fail a task because team mode is unavailable.
+
+Use the `team-routing` skill for assembly, prerequisite checks, cost estimation, and task injection.

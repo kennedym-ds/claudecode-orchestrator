@@ -207,7 +207,7 @@ Choose which plugins to install based on your needs:
 
 | Plugin | Short name | What it provides | When to install |
 |--------|-----------|------------------|-----------------|
-| **cc-sdlc-core** | `core` | 19 agents, 18 skills, 22 commands, 17 hooks, 6 rules | Always (required) |
+| **cc-sdlc-core** | `core` | 19 agents, 18 skills, 23 commands, 20 hooks, 6 rules | Always (required) |
 | **cc-sdlc-standards** | `standards` | 20 language standards, 7 domain overlays | Always (recommended) |
 | **cc-github** | `github` | PR workflows, issue triage, GitHub MCP | If using GitHub |
 | **cc-jira** | `jira` | Sprint planning, story generation, Jira MCP | If using Jira |
@@ -281,6 +281,33 @@ Or use prebuilt profiles during onboarding:
 - **budget** — Sonnet/Haiku/Haiku (cost-saving)
 - **premium** — Opus/Opus/Sonnet (max quality)
 
+### 2b. Configure Agent Teams (optional)
+
+Agent Teams run multiple specialized Claude instances in parallel for DEEP/ULTRADEEP tasks. Disabled by default.
+
+To enable, add to `.claude/settings.json`:
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "ORCH_TEAMS_ENABLED": "true"
+  }
+}
+```
+
+Or copy a prebuilt team profile:
+
+```bash
+# Standard models + teams enabled (explicit --team flag required)
+cp examples/settings-teams-enabled.json .claude/settings.json
+
+# Premium models + teams auto-routing (teams activate automatically for DEEP/ULTRADEEP)
+cp examples/settings-teams-premium.json .claude/settings.json
+```
+
+**Cost note:** Team sessions cost approximately 7x a single session. The conductor always presents a cost estimate and requires explicit confirmation before assembling any team. See [Using Agent Teams](using-agent-teams.md) for full details.
+
 ### 3. Initialize artifacts directory
 
 ```bash
@@ -312,8 +339,8 @@ pwsh -File scripts/validate-assets.ps1 -ShowDetails
 
 # Expected output:
 # Agents:   24
-# Skills:   54
-# Commands: 30
+# Skills:   55
+# Commands: 31
 # Errors:   0
 # RESULT: PASS
 ```

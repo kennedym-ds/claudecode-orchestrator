@@ -38,7 +38,7 @@ done
 
 # Test 2: All skill directories exist
 echo "Skills:"
-for skill in tdd-workflow security-review coding-standards plan-workflow review-workflow delegation-routing budget-gatekeeper strategic-compact verification-loop session-continuity; do
+for skill in tdd-workflow security-review coding-standards plan-workflow review-workflow delegation-routing budget-gatekeeper strategic-compact verification-loop session-continuity team-routing; do
   if [ -f "$SKILL_BASE/$skill/SKILL.md" ]; then
     test_pass "$skill"
   else
@@ -48,7 +48,7 @@ done
 
 # Test 3: All commands exist
 echo "Commands:"
-for cmd in conduct plan implement review research secure test deploy-check doc red-team audit route status compact; do
+for cmd in conduct plan implement review research secure test deploy-check doc red-team audit route team status compact; do
   if [ -f "$COMMAND_BASE/$cmd.md" ]; then
     test_pass "$cmd"
   else
@@ -74,7 +74,7 @@ else
   test_fail "hooks.json missing"
 fi
 
-for script in session-start session-end pre-compact post-compact pre-bash-safety post-edit-validate subagent-stop-gate stop-summary secret-detector subagent-start-log deploy-guard dependency-scanner compliance-logger stop-failure pr-gate worktree-create worktree-remove; do
+for script in session-start session-end pre-compact post-compact pre-bash-safety post-edit-validate subagent-stop-gate stop-summary secret-detector subagent-start-log deploy-guard dependency-scanner compliance-logger stop-failure pr-gate worktree-create worktree-remove teammate-idle task-created task-completed; do
   if [ -f "$HOOK_SCRIPT_BASE/$script.js" ]; then
     test_pass "$script.js"
   else
@@ -91,9 +91,35 @@ if [ -f ".claude/settings.json" ]; then
   else
     test_fail "model tier config missing"
   fi
+  if grep -q "ORCH_TEAMS_ENABLED" .claude/settings.json; then
+    test_pass "team config present"
+  else
+    test_fail "team config missing (ORCH_TEAMS_ENABLED)"
+  fi
 else
   test_fail "settings.json missing"
 fi
+
+# Test 9: Team definitions
+echo "Teams:"
+TEAM_BASE="${AGENT_BASE%agents}teams"
+for team in review-team research-team implement-team; do
+  if [ -f "$TEAM_BASE/$team.md" ]; then
+    test_pass "$team"
+  else
+    test_fail "$team — missing"
+  fi
+done
+
+# Test 10: Example settings profiles
+echo "Example profiles:"
+for profile in settings-standard settings-teams-disabled settings-teams-enabled settings-teams-premium; do
+  if [ -f "examples/$profile.json" ]; then
+    test_pass "$profile.json"
+  else
+    test_fail "$profile.json — missing"
+  fi
+done
 
 # Test 7: Integration plugins
 echo "Plugins:"

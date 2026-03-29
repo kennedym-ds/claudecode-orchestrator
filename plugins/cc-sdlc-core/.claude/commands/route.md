@@ -20,5 +20,11 @@ Assess the complexity of: $ARGUMENTS
    - Pause points
    - Estimated effort
 
+4. If complexity is DEEP or ULTRADEEP, add a **Team Mode** recommendation:
+   - Which teams are applicable (review-team, research-team, implement-team)
+   - Prerequisite status: check `ORCH_TEAMS_ENABLED` and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`
+   - Estimated cost multiplier (~7x) vs subagent mode
+   - How to enable: `/conduct --team <task>`
+
 Do NOT start execution — only assess and recommend.
 Use the delegation-routing skill.
