@@ -345,3 +345,193 @@ describe('task-completed: logging, state, and synthesis', () => {
     assert.equal(result.exitCode, 0);
   });
 });
+
+// ─── Edge-case tests (findings 1, 2, 5, 11, 12, 13) ─────────────────────────
+
+describe('task-created: edge cases', () => {
+  it('exits 2 on malformed JSON (fail-closed)', () => {
+    const { tmpDir, env } = makeProjectDir();
+    const scriptPath = path.join(SCRIPTS_DIR, 'task-created.js');
+    const result = spawnSync('node', [scriptPath], {
+      input: '{ not valid json',
+      env: { ...process.env, ...env },
+      encoding: 'utf8'
+    });
+    assert.equal(result.status, 2);
+    assert.ok(result.stderr.includes('fail-closed'), `Expected fail-closed in stderr: ${result.stderr}`);
+  });
+
+  it('exits 2 when required field is non-string (number)', () => {
+    const { tmpDir, env } = makeProjectDir();
+    const result = runHook('task-created.js', {
+      task_id: 123,
+      team_name: 'review-team',
+      title: 'Test'
+    }, env);
+    assert.equal(result.exitCode, 2);
+    assert.ok(result.stderr.includes('task_id'), `Expected field name in stderr: ${result.stderr}`);
+  });
+
+  it('exits 2 when required field is empty string', () => {
+    const { tmpDir, env } = makeProjectDir();
+    const result = runHook('task-created.js', {
+      task_id: '',
+      team_name: 'review-team',
+      title: 'Test'
+    }, env);
+    assert.equal(result.exitCode, 2);
+  });
+
+  it('exits 2 for unknown team_name', () => {
+    const { tmpDir, env } = makeProjectDir();
+    const result = runHook('task-created.js', {
+      task_id: 'task-1',
+      team_name: 'evil-team',
+      title: 'Test'
+    }, env);
+    assert.equal(result.exitCode, 2);
+    assert.ok(result.stderr.includes('evil-team'), `Expected team name in stderr: ${result.stderr}`);
+  });
+
+  it('accepts all three valid team names', () => {
+    for (const team of ['review-team', 'research-team', 'implement-team']) {
+      const { tmpDir, env } = makeProjectDir();
+      const result = runHook('task-created.js', {
+        task_id: 'task-1',
+        team_name: team,
+        title: 'Test'
+      }, env);
+      assert.equal(result.exitCode, 0, `Expected exit 0 for team "${team}"`);
+    }
+  });
+
+  it('falls back to 20 when ORCH_TEAM_MAX_TASKS is NaN', () => {
+    const { tmpDir, env } = makeProjectDir({ ORCH_TEAM_MAX_TASKS: 'not-a-number' });
+    // With default 20, totalTaskCount 0 should allow creation
+    const result = runHook('task-created.js', {
+      task_id: 'task-1',
+      team_name: 'review-team',
+      title: 'Test'
+    }, env);
+    assert.equal(result.exitCode, 0);
+  });
+
+  it('falls back to 20 when ORCH_TEAM_MAX_TASKS is 0', () => {
+    const { tmpDir, env } = makeProjectDir({ ORCH_TEAM_MAX_TASKS: '0' });
+    const result = runHook('task-created.js', {
+      task_id: 'task-1',
+      team_name: 'review-team',
+      title: 'Test'
+    }, env);
+    assert.equal(result.exitCode, 0);
+  });
+
+  it('exits 2 on corrupted team-state.json (fail-closed)', () => {
+    const { tmpDir, env } = makeProjectDir();
+    fs.writeFileSync(
+      path.join(tmpDir, 'artifacts', 'sessions', 'team-state.json'),
+      'NOT VALID JSON'
+    );
+    const result = runHook('task-created.js', {
+      task_id: 'task-1',
+      team_name: 'review-team',
+      title: 'Test'
+    }, env);
+    assert.equal(result.exitCode, 2);
+    assert.ok(result.stderr.includes('fail-closed'), `Expected fail-closed in stderr: ${result.stderr}`);
+  });
+});
+
+describe('task-completed: edge cases', () => {
+  it('skips duplicate completion for same task_id', () => {
+    const { tmpDir, env } = makeProjectDir();
+    writeTeamState(tmpDir, {
+      teamName: 'review-team',
+      totalTaskCount: 3,
+      completedTaskCount: 1,
+      completedTaskIds: ['task-1'],
+      taskIds: ['task-1', 'task-2', 'task-3'],
+      status: 'in_progress'
+    });
+
+    const result = runHook('task-completed.js', {
+      task_id: 'task-1',
+      team_name: 'review-team',
+      completed_by: 'reviewer'
+    }, env);
+
+    assert.equal(result.exitCode, 0);
+    assert.ok(result.stderr.includes('duplicate'), `Expected duplicate in stderr: ${result.stderr}`);
+
+    const state = readTeamState(tmpDir);
+    assert.equal(state.completedTaskCount, 1, 'Count should not increment on duplicate');
+  });
+
+  it('handles malformed JSON gracefully (exits 0)', () => {
+    const { tmpDir, env } = makeProjectDir();
+    const scriptPath = path.join(SCRIPTS_DIR, 'task-completed.js');
+    const result = spawnSync('node', [scriptPath], {
+      input: '{ broken json',
+      env: { ...process.env, ...env },
+      encoding: 'utf8'
+    });
+    assert.equal(result.status, 0);
+  });
+
+  it('handles corrupted team-state.json gracefully (exits 0)', () => {
+    const { tmpDir, env } = makeProjectDir();
+    fs.writeFileSync(
+      path.join(tmpDir, 'artifacts', 'sessions', 'team-state.json'),
+      'NOT VALID JSON'
+    );
+    const result = runHook('task-completed.js', {
+      task_id: 'task-1',
+      team_name: 'review-team',
+      completed_by: 'reviewer'
+    }, env);
+    assert.equal(result.exitCode, 0);
+  });
+});
+
+describe('teammate-idle: edge cases', () => {
+  it('falls back to 20 when ORCH_TEAM_MAX_TASKS is NaN', () => {
+    const { tmpDir, env } = makeProjectDir({ ORCH_TEAM_MAX_TASKS: 'garbage' });
+    // With totalTaskCount 19, at 0.9 * 20 = 18, 19 >= 18 triggers advisory
+    writeTeamState(tmpDir, { totalTaskCount: 19, completedTaskCount: 10, status: 'in_progress' });
+
+    const result = runHook('teammate-idle.js', {
+      team_name: 'review-team',
+      teammate_id: 'reviewer',
+      idle_reason: 'task_complete'
+    }, env);
+
+    assert.equal(result.exitCode, 0);
+    assert.ok(result.stderr.includes('budget'), `Expected budget advisory in stderr: ${result.stderr}`);
+  });
+
+  it('uses totalTaskCount not completedTaskCount for budget check', () => {
+    const { tmpDir, env } = makeProjectDir({ ORCH_TEAM_MAX_TASKS: '10' });
+    // totalTaskCount high (9 >= 9), completedTaskCount low (2)
+    writeTeamState(tmpDir, { totalTaskCount: 9, completedTaskCount: 2, status: 'in_progress' });
+
+    const result = runHook('teammate-idle.js', {
+      team_name: 'review-team',
+      teammate_id: 'reviewer',
+      idle_reason: 'task_complete'
+    }, env);
+
+    assert.equal(result.exitCode, 0);
+    assert.ok(result.stderr.includes('budget'), `Expected budget advisory based on totalTaskCount: ${result.stderr}`);
+  });
+
+  it('handles malformed JSON gracefully (exits 0)', () => {
+    const { tmpDir, env } = makeProjectDir();
+    const scriptPath = path.join(SCRIPTS_DIR, 'teammate-idle.js');
+    const result = spawnSync('node', [scriptPath], {
+      input: '{ broken json',
+      env: { ...process.env, ...env },
+      encoding: 'utf8'
+    });
+    assert.equal(result.status, 0);
+  });
+});

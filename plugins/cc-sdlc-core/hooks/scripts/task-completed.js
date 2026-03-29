@@ -20,13 +20,24 @@ try {
     fs.mkdirSync(sessionsDir, { recursive: true });
   }
 
+  // Idempotency: check for duplicate completion before logging
+  const taskId = data.task_id || 'unknown';
+  const teamStateFile = path.join(sessionsDir, 'team-state.json');
+  if (taskId !== 'unknown' && fs.existsSync(teamStateFile)) {
+    const preCheck = JSON.parse(fs.readFileSync(teamStateFile, 'utf8'));
+    if (preCheck.completedTaskIds && preCheck.completedTaskIds.includes(taskId)) {
+      process.stderr.write(`[task-completed] Skipped duplicate completion for task "${taskId}"\n`);
+      process.exit(0);
+    }
+  }
+
   // Log to team-log.jsonl
   const teamEntry = {
     event: 'task_completed',
     timestamp: new Date().toISOString(),
     sessionId: process.env.CLAUDE_SESSION_ID || 'unknown',
     teamName: data.team_name || 'unknown',
-    taskId: data.task_id || 'unknown',
+    taskId: taskId,
     title: data.title || 'unknown',
     completedBy: data.completed_by || 'unknown',
     durationMs: data.duration_ms || 0,
@@ -49,9 +60,11 @@ try {
   fs.appendFileSync(path.join(sessionsDir, 'delegation-log.jsonl'), JSON.stringify(budgetEntry) + '\n');
 
   // Update team-state.json
-  const teamStateFile = path.join(sessionsDir, 'team-state.json');
   if (fs.existsSync(teamStateFile)) {
     const state = JSON.parse(fs.readFileSync(teamStateFile, 'utf8'));
+
+    if (!state.completedTaskIds) state.completedTaskIds = [];
+    state.completedTaskIds.push(taskId);
     state.completedTaskCount = (state.completedTaskCount || 0) + 1;
 
     const allDone = state.completedTaskCount >= (state.totalTaskCount || 0) && state.totalTaskCount > 0;

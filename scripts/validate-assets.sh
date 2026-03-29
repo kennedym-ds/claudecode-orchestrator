@@ -129,6 +129,22 @@ for script in plugins/*/hooks/scripts/*.js; do
   fi
 done
 
+# --- Teams ---
+log "Checking teams..."
+for f in plugins/*/.claude/teams/*.md; do
+  [ -f "$f" ] || continue
+  name=$(basename "$f" .md)
+  if ! head -1 "$f" | grep -q '^---'; then
+    err "Team $name: missing YAML frontmatter"
+  fi
+  for field in name description; do
+    if ! grep -q "^${field}:" "$f"; then
+      err "Team $name: missing required field '$field'"
+    fi
+  done
+  [ -n "$VERBOSE" ] && log "  ✓ $name"
+done
+
 # --- Installer ---
 log "Checking installer..."
 for f in installer/install.sh installer/install.ps1; do

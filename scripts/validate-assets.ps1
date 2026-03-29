@@ -133,6 +133,22 @@ Get-ChildItem -Path "plugins\*\hooks\scripts\*.js" -ErrorAction SilentlyContinue
     }
 }
 
+# --- Teams ---
+Write-Log "Checking teams..."
+Get-ChildItem -Path "plugins\*\.claude\teams\*.md" -ErrorAction SilentlyContinue | ForEach-Object {
+    $name = $_.BaseName
+    $content = Get-Content $_.FullName -Raw
+    if (-not $content.StartsWith('---')) {
+        Write-Err "Team $name`: missing YAML frontmatter"
+    }
+    foreach ($field in @('name', 'description')) {
+        if ($content -notmatch "(?m)^${field}:") {
+            Write-Err "Team $name`: missing required field '$field'"
+        }
+    }
+    if ($ShowDetails) { Write-Log "  OK $name" }
+}
+
 # --- Installer ---
 Write-Log "Checking installer..."
 foreach ($f in @('installer\install.sh', 'installer\install.ps1')) {

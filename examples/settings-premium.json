@@ -2,6 +2,12 @@
   "env": {
     "ORCH_MODEL_HEAVY": "claude-opus-4-6-20260320",
     "ORCH_MODEL_DEFAULT": "claude-opus-4-6-20260320",
-    "ORCH_MODEL_FAST": "claude-sonnet-4-6-20260320"
+    "ORCH_MODEL_FAST": "claude-sonnet-4-6-20260320",
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",
+    "ORCH_TEAMS_ENABLED": "false",
+    "ORCH_TEAM_MAX_TASKS": "20",
+    "ORCH_TEAM_SIZE_MAX": "3",
+    "ORCH_TEAM_DISPLAY_MODE": "auto",
+    "ORCH_TEAM_AUTO_ROUTE": "false"
   }
 }

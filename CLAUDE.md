@@ -2,7 +2,7 @@
 
 > **Status:** Active · **Version:** 3.0.0
 
-Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 55 skills, 31 commands, 20 hooks, hook-driven quality gates, complexity-based routing, optional Agent Teams for parallel execution.
+Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 55 skills, 32 commands, 20 hooks, hook-driven quality gates, complexity-based routing, optional Agent Teams for parallel execution.
 
 ## Persona
 
@@ -68,7 +68,7 @@ See `docs/guides/using-agent-teams.md` for full setup.
 
 ## Commands
 
-31 commands across 6 plugins. Key entry points: `/conduct`, `/plan`, `/implement`, `/review`, `/research`, `/secure`, `/test`, `/architect`, `/spec`, `/estimate`, `/pair`, `/threat-model`, `/red-team`, `/incident`, `/team`.
+32 commands across 6 plugins. Key entry points: `/conduct`, `/plan`, `/implement`, `/review`, `/research`, `/secure`, `/test`, `/architect`, `/spec`, `/estimate`, `/pair`, `/threat-model`, `/red-team`, `/incident`, `/team`.
 
 ## Skills
 

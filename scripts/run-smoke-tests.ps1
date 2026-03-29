@@ -49,7 +49,7 @@ foreach ($skill in @('tdd-workflow','security-review','coding-standards','plan-w
 
 # Commands
 Write-Host "Commands:"
-foreach ($cmd in @('conduct','plan','implement','review','research','secure','test','deploy-check','doc','red-team','audit','route','team','status','compact')) {
+foreach ($cmd in @('conduct','plan','implement','review','research','secure','test','deploy-check','doc','red-team','audit','route','team','status','compact','help')) {
     if (Test-Path (Join-Path $commandBase "$cmd.md")) { Test-Pass $cmd }
     else { Test-Fail "$cmd - missing" }
 }
@@ -95,7 +95,7 @@ foreach ($team in @('review-team','research-team','implement-team')) {
 
 # Example profiles
 Write-Host "Example profiles:"
-foreach ($profile in @('settings-standard','settings-teams-disabled','settings-teams-enabled','settings-teams-premium')) {
+foreach ($profile in @('settings-standard','settings-budget','settings-premium','settings-teams-disabled','settings-teams-enabled','settings-teams-premium')) {
     if (Test-Path "examples\$profile.json") { Test-Pass "$profile.json" }
     else { Test-Fail "$profile.json - missing" }
 }

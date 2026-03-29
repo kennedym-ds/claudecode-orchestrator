@@ -49,10 +49,11 @@ try {
       }
     }
 
-    // Budget advisory if teammate count is high
-    const maxTasks = parseInt(process.env.ORCH_TEAM_MAX_TASKS || '20', 10);
-    if ((state.completedTaskCount || 0) >= maxTasks * 0.9) {
-      process.stderr.write(`[teams] Warning: ${state.completedTaskCount}/${maxTasks} task budget consumed\n`);
+    // Budget advisory if approaching task limit
+    let maxTasks = parseInt(process.env.ORCH_TEAM_MAX_TASKS || '20', 10);
+    if (isNaN(maxTasks) || maxTasks < 1) maxTasks = 20;
+    if ((state.totalTaskCount || 0) >= maxTasks * 0.9) {
+      process.stderr.write(`[teams] Warning: ${state.totalTaskCount}/${maxTasks} task budget consumed\n`);
     }
   }
 } catch (err) {

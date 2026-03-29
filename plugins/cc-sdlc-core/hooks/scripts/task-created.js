@@ -2,9 +2,12 @@
 /**
  * TaskCreated hook — validates task creation and enforces task-count budget gate.
  * Exits 2 to block creation if the task is malformed or team task limit is exceeded.
+ * Fail-closed: any unexpected error exits 2 to prevent unvalidated task creation.
  */
 const fs = require('fs');
 const path = require('path');
+
+const VALID_TEAMS = new Set(['review-team', 'research-team', 'implement-team']);
 
 try {
   let input = '';
@@ -18,10 +21,16 @@ try {
 
   const data = JSON.parse(input);
 
-  // Validate required fields
-  const missing = ['task_id', 'team_name', 'title'].filter(f => !data[f]);
+  // Validate required fields exist and are strings
+  const missing = ['task_id', 'team_name', 'title'].filter(f => !data[f] || typeof data[f] !== 'string');
   if (missing.length > 0) {
-    process.stderr.write(`[task-created] Blocked: missing required fields: ${missing.join(', ')}\n`);
+    process.stderr.write(`[task-created] Blocked: missing or invalid required fields: ${missing.join(', ')}\n`);
+    process.exit(2);
+  }
+
+  // Validate team_name against allowlist
+  if (!VALID_TEAMS.has(data.team_name)) {
+    process.stderr.write(`[task-created] Blocked: unknown team_name "${data.team_name}". Valid: ${[...VALID_TEAMS].join(', ')}\n`);
     process.exit(2);
   }
 
@@ -32,12 +41,15 @@ try {
   }
 
   // Budget gate: enforce ORCH_TEAM_MAX_TASKS
-  const maxTasks = parseInt(process.env.ORCH_TEAM_MAX_TASKS || '20', 10);
+  let maxTasks = parseInt(process.env.ORCH_TEAM_MAX_TASKS || '20', 10);
+  if (isNaN(maxTasks) || maxTasks < 1) maxTasks = 20;
+
   const teamStateFile = path.join(sessionsDir, 'team-state.json');
-  let state = { totalTaskCount: 0, completedTaskCount: 0, taskIds: [] };
+  let state = { totalTaskCount: 0, completedTaskCount: 0, taskIds: [], completedTaskIds: [] };
 
   if (fs.existsSync(teamStateFile)) {
     state = JSON.parse(fs.readFileSync(teamStateFile, 'utf8'));
+    if (!state.completedTaskIds) state.completedTaskIds = [];
   }
 
   const currentCount = state.totalTaskCount || 0;
@@ -80,8 +92,9 @@ try {
       );
     }
   }
-} catch (err) {
-  process.stderr.write(`[task-created] Warning: ${err.message}\n`);
-}
 
-process.exit(0);
+  process.exit(0);
+} catch (err) {
+  process.stderr.write(`[task-created] Blocked (fail-closed): ${err.message}\n`);
+  process.exit(2);
+}

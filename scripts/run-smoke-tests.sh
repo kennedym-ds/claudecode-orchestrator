@@ -48,7 +48,7 @@ done
 
 # Test 3: All commands exist
 echo "Commands:"
-for cmd in conduct plan implement review research secure test deploy-check doc red-team audit route team status compact; do
+for cmd in conduct plan implement review research secure test deploy-check doc red-team audit route team status compact help; do
   if [ -f "$COMMAND_BASE/$cmd.md" ]; then
     test_pass "$cmd"
   else
@@ -113,7 +113,7 @@ done
 
 # Test 10: Example settings profiles
 echo "Example profiles:"
-for profile in settings-standard settings-teams-disabled settings-teams-enabled settings-teams-premium; do
+for profile in settings-standard settings-budget settings-premium settings-teams-disabled settings-teams-enabled settings-teams-premium; do
   if [ -f "examples/$profile.json" ]; then
     test_pass "$profile.json"
   else

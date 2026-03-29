@@ -112,6 +112,14 @@ Add hooks to `.claude/settings.json`:
 | `WorktreeCreate` | — | When a git worktree is created |
 | `WorktreeRemove` | — | When a git worktree is removed |
 
+### Agent Teams
+
+| Event | Matcher | When it fires |
+|-------|---------|--------------|
+| `TeammateIdle` | — | When a teammate goes idle (informational, exit 0 only) |
+| `TaskCreated` | — | When a task is injected into the team task list (sync, exit 2 blocks creation) |
+| `TaskCompleted` | — | When a teammate completes a task (async, exit 0 only) |
+
 ## Hook Types
 
 ### Command (default)

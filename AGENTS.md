@@ -3,7 +3,7 @@
 > **Status:** Active
 > **Version:** 3.0.0
 
-Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 55 skills, 31 commands, 20 hooks, hook-driven quality gates, complexity-based routing, optional Agent Teams for parallel execution.
+Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 55 skills, 32 commands, 20 hooks, hook-driven quality gates, complexity-based routing, optional Agent Teams for parallel execution.
 
 ---
 
@@ -13,7 +13,7 @@ Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 55 skills
 .claude-plugin/
   marketplace.json        → Plugin catalog (6 plugins)
 plugins/
-  cc-sdlc-core/           → Orchestration engine (19 agents, 19 skills, 23 commands, 20 hooks)
+  cc-sdlc-core/           → Orchestration engine (19 agents, 19 skills, 24 commands, 20 hooks)
   cc-sdlc-standards/      → 20 language + 7 domain coding standards
   cc-github/              → GitHub PR/issue workflows via MCP
   cc-jira/                → Jira integration via MCP
@@ -180,6 +180,7 @@ All agents use these Claude Code frontmatter fields:
 | `/team` | Agent team management (list, assemble, status, cancel) |
 | `/status` | Session status |
 | `/compact` | Strategic context compaction |
+| `/help` | Command reference and quick-start guide |
 
 ## Hook Events
 
