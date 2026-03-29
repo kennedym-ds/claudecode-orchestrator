@@ -95,6 +95,26 @@ else
   test_fail "settings.json missing"
 fi
 
+# Test 7: Integration plugins
+echo "Plugins:"
+for plugin in cc-jira cc-confluence cc-jama; do
+  if [ -f "plugins/$plugin/.claude-plugin/plugin.json" ]; then
+    test_pass "$plugin plugin"
+  else
+    test_fail "$plugin plugin — missing"
+  fi
+done
+
+# Test 8: Templates
+echo "Templates:"
+for tmpl in plan plan-complete phase-complete artifact-index; do
+  if [ -f "docs/templates/$tmpl.md" ]; then
+    test_pass "$tmpl.md"
+  else
+    test_fail "$tmpl.md — missing"
+  fi
+done
+
 # Summary
 echo ""
 echo "=== Results ==="
