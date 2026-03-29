@@ -5,7 +5,7 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 
 try {
   const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
@@ -14,11 +14,11 @@ try {
   // Get git diff summary
   let diffSummary = '';
   try {
-    diffSummary = execSync('git diff --stat HEAD', {
+    diffSummary = execFileSync('git', ['diff', '--stat', 'HEAD'], {
       cwd: projectDir,
       timeout: 5000,
-      stdio: 'pipe',
-    }).toString().trim();
+      encoding: 'utf8',
+    }).trim();
   } catch {
     // Not a git repo or no changes
     process.exit(0);
@@ -31,11 +31,11 @@ try {
   // Count changed files
   let changedFiles = [];
   try {
-    changedFiles = execSync('git diff --name-only HEAD', {
+    changedFiles = execFileSync('git', ['diff', '--name-only', 'HEAD'], {
       cwd: projectDir,
       timeout: 5000,
-      stdio: 'pipe',
-    }).toString().trim().split('\n').filter(Boolean);
+      encoding: 'utf8',
+    }).trim().split('\n').filter(Boolean);
   } catch {
     process.exit(0);
   }

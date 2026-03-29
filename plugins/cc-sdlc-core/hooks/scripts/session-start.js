@@ -29,16 +29,18 @@ try {
 
   // Log session start for observability
   const sessionsDir = path.join(projectDir, 'artifacts', 'sessions');
-  if (fs.existsSync(sessionsDir)) {
-    const logFile = path.join(sessionsDir, 'session-log.jsonl');
-    const entry = {
-      event: 'session_start',
-      timestamp: new Date().toISOString(),
-      sessionId: process.env.CLAUDE_SESSION_ID || 'unknown',
-      hasPriorState: fs.existsSync(contextFile)
-    };
-    fs.appendFileSync(logFile, JSON.stringify(entry) + '\n');
+  if (!fs.existsSync(sessionsDir)) {
+    fs.mkdirSync(sessionsDir, { recursive: true });
   }
+
+  const logFile = path.join(sessionsDir, 'session-log.jsonl');
+  const entry = {
+    event: 'session_start',
+    timestamp: new Date().toISOString(),
+    sessionId: process.env.CLAUDE_SESSION_ID || 'unknown',
+    hasPriorState: fs.existsSync(contextFile)
+  };
+  fs.appendFileSync(logFile, JSON.stringify(entry) + '\n');
 } catch (err) {
   // Non-blocking — session starts even if hook fails
   process.stderr.write(`[session-start] Warning: ${err.message}\n`);

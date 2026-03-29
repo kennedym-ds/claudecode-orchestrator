@@ -36,7 +36,8 @@ try {
 
   // Also write a standalone failure report for the session
   const dateStr = new Date().toISOString().slice(0, 10);
-  const reportFile = path.join(sessionsDir, `${dateStr}-failure.md`);
+  const sessionSuffix = (entry.sessionId || 'unknown').slice(0, 8);
+  const reportFile = path.join(sessionsDir, `${dateStr}-${sessionSuffix}-failure.md`);
   const report = [
     `# Session Failure — ${entry.timestamp}`,
     '',

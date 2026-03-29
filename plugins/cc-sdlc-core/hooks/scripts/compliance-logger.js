@@ -25,7 +25,7 @@ try {
     const sessionsDir = path.join(projectDir, 'artifacts', 'sessions');
 
     if (!fs.existsSync(sessionsDir)) {
-      process.exit(0);
+      fs.mkdirSync(sessionsDir, { recursive: true });
     }
 
     const logEntry = {

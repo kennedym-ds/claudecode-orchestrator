@@ -8,7 +8,7 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 
 const MANIFEST_FILES = new Set([
   'package.json', 'package-lock.json', 'yarn.lock', 'pnpm-lock.yaml',
@@ -39,7 +39,7 @@ function runAudit(manifestDir, manifestType) {
   if (manifestType === 'node') {
     try {
       // npm audit exits non-zero if vulnerabilities found; stdout has the JSON report
-      execSync('npm audit --json', {
+      execFileSync('npm', ['audit', '--json'], {
         cwd: manifestDir,
         timeout: AUDIT_TIMEOUT_MS,
         encoding: 'utf8',
@@ -68,7 +68,7 @@ function runAudit(manifestDir, manifestType) {
     }
   } else if (manifestType === 'python') {
     try {
-      const output = execSync('pip-audit --format json', {
+      const output = execFileSync('pip-audit', ['--format', 'json'], {
         cwd: manifestDir,
         timeout: AUDIT_TIMEOUT_MS,
         encoding: 'utf8',

@@ -55,10 +55,7 @@ if ($Uninstall) {
         if (Test-Path $backupDir) {
             $latestBackup = Get-ChildItem "$backupDir\settings.json.*" -ErrorAction SilentlyContinue |
                 Sort-Object LastWriteTime -Descending | Select-Object -First 1
-            if ($latestBackup -and (Test-Path $settingsFile)) {
-                Copy-Item $latestBackup.FullName $settingsFile -Force
-                Write-Host "  Restored settings.json from backup: $($latestBackup.Name)"
-            } elseif ($latestBackup) {
+            if ($latestBackup) {
                 Copy-Item $latestBackup.FullName $settingsFile -Force
                 Write-Host "  Restored settings.json from backup: $($latestBackup.Name)"
             }
