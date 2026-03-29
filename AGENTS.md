@@ -1,7 +1,7 @@
 # cc-sdlc — Project Playbook
 
 > **Status:** Active  
-> **Version:** 1.0.0
+> **Version:** 2.0.0
 
 Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 54 skills, 30 commands, hook-driven quality gates, complexity-based routing.
 
@@ -73,9 +73,9 @@ Model selection is tier-based and fully configurable. Three tiers map to task co
 3. **Per-agent** — Override `model:` in agent frontmatter (`.claude/agents/<name>.md`)
 
 4. **Profiles** — Copy from `examples/` to `.claude/settings.json`:
-   - `settings-budget.json` — Haiku default, Sonnet for review, Opus for security only
-   - `settings-standard.json` — Sonnet default, Opus for judgment roles (recommended)
-   - `settings-premium.json` — Opus for everything (max quality, higher cost)
+   - `settings-budget.json` — Haiku default/fast, Sonnet heavy
+   - `settings-standard.json` — Sonnet default, Opus heavy, Haiku fast (recommended)
+   - `settings-premium.json` — Opus heavy/default, Sonnet fast
 
 ## Agent Roster (24 Agents)
 
@@ -176,7 +176,7 @@ Hooks are configured in `.claude/settings.json` (for standalone repo usage) and 
 | ✓ PreToolUse | Bash | pre-bash-safety.js | Block destructive commands (exit 2) |
 | ✓ PreToolUse | Bash | deploy-guard.js | Block production deployments (exit 2) |
 | ✓ PostToolUse | Edit\|Write | post-edit-validate.js | Lint/format after edits (async) |
-| ✓ PostToolUse | Edit\|Write | dependency-scanner.js | Scan for vulnerable dependencies (async) |
+| ✓ PostToolUse | Edit\|Write | dependency-scanner.js | Scan for vulnerable deps — `*package*.json` only (async) |
 | ✓ PostToolUse | Edit\|Write | compliance-logger.js | Audit trail for file changes (async) |
 | ✓ SubagentStart | — | subagent-start-log.js | Log subagent launches for budget tracking |
 | ✓ SubagentStop | — | subagent-stop-gate.js | Log completion, quality gate |
@@ -285,7 +285,7 @@ Initialize with: `bash scripts/init-artifacts.sh`
 
 ## Safety & Compliance
 
-- Security guardrails in `.claude/rules/security.md`
+- Security guardrails in `plugins/cc-sdlc-core/.claude/rules/security.md`
 - Secret detection hook blocks credentials in prompts and edits
 - Bash safety hook blocks destructive commands (`rm -rf`, `DROP TABLE`, etc.)
 - Read-only agents use `permissionMode: plan` — cannot modify files
