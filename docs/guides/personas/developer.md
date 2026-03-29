@@ -91,4 +91,4 @@ Use this to decide how much ceremony to apply:
 - **Don't skip plan approval** — the plan shapes everything. If the plan is wrong, the code will be wrong.
 - **Commit after each phase** — the conductor pauses between phases specifically to give you a commit window.
 - **Use `/compact` in long sessions** — at milestones, not mid-phase.
-- **Re-review after fixes** — run `/review` again if you addressed CRITICAL/HIGH findings before merging.
+- **Re-review after fixes** — run `/review` again if you addressed BLOCKER/MAJOR findings before merging.

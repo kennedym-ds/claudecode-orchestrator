@@ -579,7 +579,7 @@ claude --agent conductor --max-budget-usd 5
 
 - **Don't skip pause points** — they exist to catch problems early
 - **Don't use ULTRADEEP for simple tasks** — it's expensive and slow
-- **Don't ignore review findings** — CRITICAL and HIGH findings indicate real risks
+- **Don't ignore review findings** — BLOCKER and MAJOR findings indicate real risks
 - **Don't commit secrets** — add `.claude/settings.json` to `.gitignore`
 - **Don't run multiple conductors** on the same branch simultaneously
 
@@ -607,9 +607,9 @@ claude --agent conductor
 
 When the reviewer finds issues:
 
-1. **CRITICAL/HIGH findings** — Conductor routes back to implementer for fixes
-2. **MEDIUM findings** — You choose: fix now or create follow-up task
-3. **LOW findings** — Noted in the report, no action required
+1. **BLOCKER/MAJOR findings** — Conductor routes back to implementer for fixes
+2. **MINOR findings** — You choose: fix now or create follow-up task
+3. **NIT findings** — Noted in the report, no action required
 
 You can also request a re-review after fixes:
 

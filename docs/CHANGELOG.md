@@ -14,7 +14,7 @@ All notable changes to the Claude Code Orchestrator.
 - 3 MCP plugins: cc-jira (8 tools), cc-confluence (6 tools), cc-jama (8 tools)
 - Three-tier model configuration (heavy/default/fast) with env var overrides
 - 3 settings profiles: budget, standard, premium
-- Validation and smoke test scripts (bash + PowerShell, 66 checks)
+- Validation and smoke test scripts (bash + PowerShell, 67 checks)
 - Deployment scripts for user-level and project-level install
 - Plugin manifest for marketplace distribution
 - Documentation: onboarding, model configuration, CLI reference, workflows, troubleshooting, MCP plugin development
