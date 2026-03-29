@@ -29,14 +29,22 @@ Run inside an active Claude Code session:
 |---------|---------|
 | `/conduct <task>` | Full lifecycle orchestration |
 | `/plan <task>` | Create a multi-phase implementation plan |
+| `/architect <task>` | Architecture design and ADR generation |
+| `/spec <task>` | Interactive specification builder |
 | `/implement <task>` | TDD-driven implementation |
 | `/review <scope>` | Code review with severity tagging |
 | `/research <topic>` | Evidence gathering with citations |
 | `/secure <scope>` | OWASP-aligned security audit |
+| `/threat-model <scope>` | STRIDE/DREAD threat modeling |
+| `/red-team <scope>` | Adversarial testing and edge cases |
 | `/test <scope>` | Write tests (Red-Green-Refactor) |
+| `/test-arch <scope>` | Test strategy and pyramid design |
+| `/e2e <scope>` | End-to-end acceptance tests |
+| `/estimate <task>` | T-shirt sizing and story points |
+| `/pair <task>` | Collaborative pair programming |
+| `/incident <scope>` | Root cause analysis and 5-why |
 | `/deploy-check` | CI/CD readiness check |
 | `/doc <scope>` | Generate or update documentation |
-| `/red-team <scope>` | Adversarial testing and edge cases |
 | `/audit` | Self-check the orchestrator harness |
 | `/route <task>` | Assess complexity without executing |
 | `/status` | Session state, phase progress, budget |
@@ -44,14 +52,16 @@ Run inside an active Claude Code session:
 
 ### Plugin Commands
 
-| Command | Purpose |
-|---------|---------|
-| `/jira-sync` | Sync orchestrator plans to Jira stories |
-| `/jira-context` | Pull Jira issue details into session |
-| `/confluence-publish` | Publish artifacts to Confluence pages |
-| `/confluence-search` | Search Confluence for existing docs |
-| `/jama-trace` | Trace requirements in Jama |
-| `/jama-context` | Pull Jama item details into session |
+| Command | Plugin | Purpose |
+|---------|--------|---------|
+| `/github-pr` | cc-github | PR creation and review workflows |
+| `/github-issue` | cc-github | Issue triage and creation |
+| `/jira-sync` | cc-jira | Sync orchestrator plans to Jira stories |
+| `/jira-context` | cc-jira | Pull Jira issue details into session |
+| `/confluence-publish` | cc-confluence | Publish artifacts to Confluence pages |
+| `/confluence-search` | cc-confluence | Search Confluence for existing docs |
+| `/jama-trace` | cc-jama | Trace requirements in Jama |
+| `/jama-context` | cc-jama | Pull Jama item details into session |
 
 ## Common Patterns
 

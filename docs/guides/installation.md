@@ -36,8 +36,8 @@ Guide for installing cc-sdlc into your Claude Code environment.
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/kennedym-ds/cc-sdlc.git
-cd cc-sdlc
+git clone https://github.com/kennedym-ds/claudecode-orchestrator.git
+cd claudecode-orchestrator
 ```
 
 ### 2. Run the installer
@@ -113,8 +113,8 @@ pwsh -File scripts/deploy-user.ps1 -Mode Symlink
 ### Method 3: Plugin Install (Claude Code Marketplace)
 
 ```
-/plugin marketplace add kennedym-ds/cc-sdlc
-/plugin install cc-sdlc@kennedym-ds/cc-sdlc
+/plugin marketplace add kennedym-ds/claudecode-orchestrator
+/plugin install cc-sdlc@kennedym-ds/claudecode-orchestrator
 ```
 
 ### Method 4: Direct Plugin Directory
@@ -348,7 +348,7 @@ pwsh -File installer/onboard.ps1 -NonInteractive
 Re-run the installer from the latest repo:
 
 ```bash
-cd cc-sdlc
+cd claudecode-orchestrator
 git pull
 bash installer/install.sh --target /path/to/project --plugins all
 ```
@@ -356,7 +356,7 @@ bash installer/install.sh --target /path/to/project --plugins all
 ### User-level install
 
 ```bash
-cd cc-sdlc
+cd claudecode-orchestrator
 git pull
 bash scripts/deploy-user.sh
 ```

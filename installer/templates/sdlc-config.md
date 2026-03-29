@@ -53,7 +53,7 @@ models:
 ```yaml
 review:
   confidence_threshold: 80       # 0-100, findings below this are suppressed
-  severity_filter: "WARNING"     # ERROR | WARNING | RECOMMENDATION
+  severity_filter: "MINOR"       # BLOCKER | MAJOR | MINOR | NIT
   auto_skip_generated: true      # Skip review of generated/vendored files
 ```
 

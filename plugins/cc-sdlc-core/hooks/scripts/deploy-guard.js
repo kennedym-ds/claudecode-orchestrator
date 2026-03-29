@@ -10,16 +10,21 @@ const DEPLOY_PATTERNS = [
   /kubectl\s+apply.*--context\s+prod/i,
   /kubectl\s+apply.*production/i,
   /helm\s+(install|upgrade).*prod/i,
-  /terraform\s+apply\s+(?!.*--target)/i,  // terraform apply without --target
+  /terraform\s+apply\s+(?!.*-{1,2}target)/i,  // terraform apply without -target/--target
   /aws\s+.*deploy/i,
   /az\s+.*deployment\s+create/i,
   /gcloud\s+.*deploy/i,
-  /git\s+push.*--force.*main/i,
-  /git\s+push.*--force.*master/i,
-  /git\s+push.*--force.*release/i,
   /git\s+push.*--force-all/i,           // nukes all remote refs — always requires approval
   /docker\s+push.*prod/i,
 ];
+
+const PROTECTED_REFS = /\b(main|master|release\b)/i;
+const FORCE_FLAGS = /--force\b|--force-with-lease\b|-f\b/;
+
+function isForceProtectedPush(cmd) {
+  if (!/git\s+push/i.test(cmd)) return false;
+  return FORCE_FLAGS.test(cmd) && PROTECTED_REFS.test(cmd);
+}
 
 try {
   let input = '';
@@ -44,9 +49,19 @@ try {
         process.exit(2);
       }
     }
+
+    if (isForceProtectedPush(command)) {
+      process.stderr.write(
+        '[deploy-guard] BLOCKED: Force-push to protected branch detected.\n' +
+        'Set DEPLOY_APPROVED=true in environment to allow, or use /deploy-check first.'
+      );
+      process.exit(2);
+    }
   }
 } catch (err) {
+  // Blocking hook: if stdin was present but unparseable, fail closed (block)
   process.stderr.write(`[deploy-guard] Warning: ${err.message}\n`);
+  if (err instanceof SyntaxError) process.exit(2);
 }
 
 process.exit(0);

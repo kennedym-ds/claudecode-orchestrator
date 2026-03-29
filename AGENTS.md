@@ -262,8 +262,8 @@ pwsh -File installer/install.ps1 -TargetPath C:\path\to\project
 ### Plugin
 
 ```bash
-/plugin marketplace add <owner>/claudecode-orchestrator
-/plugin install claudecode-orchestrator@claudecode-orchestrator
+/plugin marketplace add kennedym-ds/claudecode-orchestrator
+/plugin install cc-sdlc@kennedym-ds/claudecode-orchestrator
 ```
 
 ## Local Artifact Storage

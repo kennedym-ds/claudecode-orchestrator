@@ -55,13 +55,13 @@
           {
             "type": "command",
             "command": "node plugins/cc-sdlc-core/hooks/scripts/dependency-scanner.js",
-            "if": "Edit(*package*.json)",
+            "if": "Edit(*package*.json|*requirements*.txt|*Pipfile*|*poetry.lock|*Gemfile*|*go.sum|*Cargo.lock|*composer.lock|*pom.xml|*build.gradle|*yarn.lock|*pnpm-lock*)",
             "async": true
           },
           {
             "type": "command",
             "command": "node plugins/cc-sdlc-core/hooks/scripts/dependency-scanner.js",
-            "if": "Write(*package*.json)",
+            "if": "Write(*package*.json|*requirements*.txt|*Pipfile*|*poetry.lock|*Gemfile*|*go.sum|*Cargo.lock|*composer.lock|*pom.xml|*build.gradle|*yarn.lock|*pnpm-lock*)",
             "async": true
           },
           {

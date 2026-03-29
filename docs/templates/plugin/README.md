@@ -5,11 +5,12 @@ Brief description of what this plugin provides.
 ## Installation
 
 ```bash
-# Via cc-sdlc installer
-pwsh -File installer/install.ps1 -Plugins my-plugin
-
-# Or load directly
+# Load directly during development
 claude --plugin-dir ./plugins/cc-my-plugin
+
+# Install from GitHub repository
+# /plugin marketplace add owner/repo
+# /plugin install my-plugin@owner/repo
 ```
 
 ## Components

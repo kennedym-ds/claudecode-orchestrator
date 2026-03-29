@@ -80,8 +80,24 @@ function runAudit(manifestDir, manifestType) {
           `[dependency-scanner] pip-audit: ${report.length} vulnerabilit${report.length === 1 ? 'y' : 'ies'} found. Run \`pip-audit\` for details.\n`
         );
       }
-    } catch {
-      // pip-audit not available or no issues — skip silently
+    } catch (e) {
+      // pip-audit exits non-zero when vulnerabilities are found (like npm audit)
+      if (e.stdout) {
+        try {
+          const report = JSON.parse(e.stdout);
+          if (Array.isArray(report) && report.length > 0) {
+            const fixable = report.filter(v => v.fix_versions && v.fix_versions.length > 0).length;
+            process.stderr.write(
+              `[dependency-scanner] pip-audit: ${report.length} vulnerabilit${report.length === 1 ? 'y' : 'ies'} found` +
+              (fixable > 0 ? `, ${fixable} fixable` : '') +
+              `. Run \`pip-audit\` for details.\n`
+            );
+          }
+        } catch {
+          // JSON parse failed — pip-audit may not be available or output format changed
+        }
+      }
+      // If no stdout at all, pip-audit is likely not installed — skip silently
     }
   }
 }

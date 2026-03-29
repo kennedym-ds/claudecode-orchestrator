@@ -7,10 +7,14 @@
 const fs = require('fs');
 
 const BLOCKED_PATTERNS = [
-  // Filesystem destruction
+  // Filesystem destruction — compact flags
   /rm\s+(-rf|-fr)\s+[\/~]/i,           // rm -rf / or ~
   /rm\s+(-rf|-fr)\s+\.\s*$/i,          // rm -rf . (end of command)
   /rm\s+(-rf|-fr)\s+\.\s/i,            // rm -rf . (followed by more)
+  // Filesystem destruction — split flags and long flags
+  /rm\s+(-[a-z]*r[a-z]*\s+-[a-z]*f[a-z]*|-[a-z]*f[a-z]*\s+-[a-z]*r[a-z]*)\s+[\/~]/i,  // rm -r -f / or rm -f -r /
+  /rm\s+(--recursive\s+--force|--force\s+--recursive)\s/i,  // rm --recursive --force
+  /rm\s+(-[a-z]*r[a-z]*\s+--force|--recursive\s+-[a-z]*f[a-z]*)\s/i,  // mixed: rm -r --force, rm --recursive -f
 
   // SQL destructive
   /DROP\s+(TABLE|DATABASE|SCHEMA)/i,
@@ -34,8 +38,7 @@ const BLOCKED_PATTERNS = [
   /curl[^|]*\|\s*(bash|sh|zsh)/i,       // curl | shell
   /wget[^|]*\|\s*(bash|sh|zsh)/i,       // wget | shell
 
-  // Force-push to any branch (covered broadly; deploy-guard handles prod-specific patterns)
-  /git\s+push\s+.*--force-with-lease.*main/i,
+  // Force-push (broadly blocked; deploy-guard handles prod-specific patterns)
   /git\s+push\s+.*--force-all/i,        // force-all pushes everything, catastrophic on shared repos
 ];
 
@@ -57,8 +60,9 @@ try {
     }
   }
 } catch (err) {
-  // Parse errors are non-blocking — let the command through
+  // Blocking hook: if stdin was present but unparseable, fail closed (block)
   process.stderr.write(`[pre-bash-safety] Warning: ${err.message}\n`);
+  if (err instanceof SyntaxError) process.exit(2);
 }
 
 process.exit(0);

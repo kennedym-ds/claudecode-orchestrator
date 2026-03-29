@@ -47,13 +47,13 @@
           },
           {
             "type": "command",
-            "if": "Edit(*package*.json)",
+            "if": "Edit(*package*.json|*requirements*.txt|*Pipfile*|*poetry.lock|*Gemfile*|*go.sum|*Cargo.lock|*composer.lock|*pom.xml|*build.gradle|*yarn.lock|*pnpm-lock*)",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/dependency-scanner.js",
             "async": true
           },
           {
             "type": "command",
-            "if": "Write(*package*.json)",
+            "if": "Write(*package*.json|*requirements*.txt|*Pipfile*|*poetry.lock|*Gemfile*|*go.sum|*Cargo.lock|*composer.lock|*pom.xml|*build.gradle|*yarn.lock|*pnpm-lock*)",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/scripts/dependency-scanner.js",
             "async": true
           },

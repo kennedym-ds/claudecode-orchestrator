@@ -26,7 +26,7 @@ function confluenceFetch(method, path, body) {
   return new Promise((resolve, reject) => {
     const url = new URL(path, CONFLUENCE_BASE_URL);
 
-    const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+    const isLocalhost = /^(localhost|127\.\d+\.\d+\.\d+|\[?::1\]?|0\.0\.0\.0)$/.test(url.hostname);
     if (url.protocol !== 'https:' && !isLocalhost) {
       reject(new Error('CONFLUENCE_BASE_URL must use HTTPS for non-localhost connections'));
       return;
@@ -151,9 +151,15 @@ const TOOLS = [
 ];
 
 // --- Input Validation ---
-function requireString(val, name) {
+const MAX_STRING_LENGTH = 10240; // 10 KB cap on string inputs
+const MAX_BODY_LENGTH = 1048576; // 1 MB cap on page body content
+
+function requireString(val, name, maxLen = MAX_STRING_LENGTH) {
   if (typeof val !== 'string' || val.trim().length === 0) {
     throw new Error(`${name} is required and must be a non-empty string`);
+  }
+  if (val.length > maxLen) {
+    throw new Error(`${name} exceeds maximum length of ${maxLen} characters`);
   }
   return val.trim();
 }
@@ -191,7 +197,7 @@ async function handleTool(name, args) {
       // Auto-wrap plain text in CQL text~ search if it doesn't look like CQL
       // (CQL operators: =, ~, !=, IN, AND, OR, NOT, space, type, label, etc.)
       if (!/[=~!]|(?:^|\s)(?:AND|OR|NOT|IN|type|space|label|ancestor|parent)\b/i.test(cql)) {
-        cql = `type = "page" AND text ~ "${cql.replace(/"/g, '\\"')}"`;
+        cql = `type = "page" AND text ~ "${cql.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
       }
       if (args.space_key && !cql.toLowerCase().includes('space')) {
         const safeSpaceKey = validateSpaceKey(args.space_key);
@@ -242,7 +248,7 @@ async function handleTool(name, args) {
     case 'create_page': {
       const spaceKey = validateSpaceKey(args.space_key);
       requireString(args.title, 'title');
-      requireString(args.body, 'body');
+      requireString(args.body, 'body', MAX_BODY_LENGTH);
       const payload = {
         type: 'page',
         title: args.title,
@@ -273,7 +279,7 @@ async function handleTool(name, args) {
 
     case 'update_page': {
       requireString(args.page_id, 'page_id');
-      requireString(args.body, 'body');
+      requireString(args.body, 'body', MAX_BODY_LENGTH);
       if (typeof args.version_number !== 'number' || args.version_number < 1) {
         throw new Error('version_number is required and must be a positive integer');
       }
@@ -344,10 +350,10 @@ async function main() {
     const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
     const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
 
-    const server = new McpServer({ name: 'cc-confluence', version: '0.1.0' });
+    const server = new McpServer({ name: 'cc-confluence', version: '2.0.0' });
 
     for (const tool of TOOLS) {
-      server.tool(tool.name, tool.description, tool.inputSchema.properties, async (args) => {
+      server.tool(tool.name, tool.description, tool.inputSchema, async (args) => {
         try {
           const result = await handleTool(tool.name, args);
           return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };

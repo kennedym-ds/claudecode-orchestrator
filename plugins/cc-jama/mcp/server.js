@@ -31,7 +31,7 @@ async function getAccessToken() {
   }
 
   const url = new URL('/rest/oauth/token', JAMA_BASE_URL);
-  const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  const isLocalhost = /^(localhost|127\.\d+\.\d+\.\d+|\[?::1\]?|0\.0\.0\.0)$/.test(url.hostname);
   if (url.protocol !== 'https:' && !isLocalhost) {
     throw new Error('JAMA_BASE_URL must use HTTPS for non-localhost connections');
   }
@@ -223,9 +223,22 @@ function requireNumber(val, name) {
   return val;
 }
 
-function requireString(val, name) {
+function optionalNumber(val, name) {
+  if (val === undefined || val === null) return undefined;
+  if (typeof val !== 'number' || !Number.isFinite(val) || val < 0) {
+    throw new Error(`${name} must be a non-negative number`);
+  }
+  return val;
+}
+
+const MAX_STRING_LENGTH = 10240; // 10 KB cap on string inputs
+
+function requireString(val, name, maxLen = MAX_STRING_LENGTH) {
   if (typeof val !== 'string' || val.trim().length === 0) {
     throw new Error(`${name} is required and must be a non-empty string`);
+  }
+  if (val.length > maxLen) {
+    throw new Error(`${name} exceeds maximum length of ${maxLen} characters`);
   }
   return val.trim();
 }
@@ -256,9 +269,12 @@ async function handleTool(name, args) {
     case 'get_items': {
       requireNumber(args.project_id, 'project_id');
       const maxResults = clampPagination(args.max_results, 20, 50);
-      const startAt = Math.max(args.start_at || 0, 0);
-      let path = `/rest/v1/items?project=${args.project_id}&startAt=${startAt}&maxResults=${maxResults}`;
-      if (args.item_type) path += `&itemType=${args.item_type}`;
+      const startAt = Math.max(typeof args.start_at === 'number' ? args.start_at : 0, 0);
+      let path = `/rest/v1/items?project=${encodeURIComponent(args.project_id)}&startAt=${encodeURIComponent(startAt)}&maxResults=${encodeURIComponent(maxResults)}`;
+      if (args.item_type != null) {
+        optionalNumber(args.item_type, 'item_type');
+        path += `&itemType=${encodeURIComponent(args.item_type)}`;
+      }
       const result = await jamaFetch('GET', path);
       return {
         items: (result.data || []).map(formatItem),
@@ -271,9 +287,15 @@ async function handleTool(name, args) {
     case 'search_items': {
       requireString(args.query, 'query');
       const maxResults = clampPagination(args.max_results, 20, 50);
-      let path = `/rest/v1/abstractitems?contains=${encodeURIComponent(args.query)}&maxResults=${maxResults}`;
-      if (args.project_id) path += `&project=${args.project_id}`;
-      if (args.item_type) path += `&itemType=${args.item_type}`;
+      let path = `/rest/v1/abstractitems?contains=${encodeURIComponent(args.query)}&maxResults=${encodeURIComponent(maxResults)}`;
+      if (args.project_id != null) {
+        optionalNumber(args.project_id, 'project_id');
+        path += `&project=${encodeURIComponent(args.project_id)}`;
+      }
+      if (args.item_type != null) {
+        optionalNumber(args.item_type, 'item_type');
+        path += `&itemType=${encodeURIComponent(args.item_type)}`;
+      }
       const result = await jamaFetch('GET', path);
       return {
         items: (result.data || []).map(formatItem),
@@ -365,7 +387,10 @@ async function handleTool(name, args) {
 
     case 'get_item_types': {
       let path = '/rest/v1/itemtypes';
-      if (args.project_id) path = `/rest/v1/projects/${encodeURIComponent(args.project_id)}/itemtypes`;
+      if (args.project_id != null) {
+        optionalNumber(args.project_id, 'project_id');
+        path = `/rest/v1/projects/${encodeURIComponent(args.project_id)}/itemtypes`;
+      }
       const result = await jamaFetch('GET', path);
       return (result.data || []).map((t) => ({
         id: t.id, typeKey: t.typeKey,
@@ -384,10 +409,10 @@ async function main() {
     const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
     const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
 
-    const server = new McpServer({ name: 'cc-jama', version: '0.1.0' });
+    const server = new McpServer({ name: 'cc-jama', version: '2.0.0' });
 
     for (const tool of TOOLS) {
-      server.tool(tool.name, tool.description, tool.inputSchema.properties, async (args) => {
+      server.tool(tool.name, tool.description, tool.inputSchema, async (args) => {
         try {
           const result = await handleTool(tool.name, args);
           return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };

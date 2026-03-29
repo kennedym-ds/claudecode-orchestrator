@@ -38,7 +38,9 @@ try {
     }
   }
 } catch (err) {
+  // Blocking hook: if stdin was present but unparseable, fail closed (block)
   process.stderr.write(`[secret-detector] Warning: ${err.message}\n`);
+  if (err instanceof SyntaxError) process.exit(2);
 }
 
 process.exit(0);

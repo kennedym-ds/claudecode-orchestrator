@@ -28,7 +28,7 @@ function jiraFetch(method, path, body) {
     const url = new URL(path, JIRA_BASE_URL);
 
     // Only allow HTTPS in production; HTTP only for localhost/testing
-    const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+    const isLocalhost = /^(localhost|127\.\d+\.\d+\.\d+|\[?::1\]?|0\.0\.0\.0)$/.test(url.hostname);
     if (url.protocol !== 'https:' && !isLocalhost) {
       reject(new Error('JIRA_BASE_URL must use HTTPS for non-localhost connections'));
       return;
@@ -177,9 +177,14 @@ const TOOLS = [
 ];
 
 // --- Input Validation ---
-function requireString(val, name) {
+const MAX_STRING_LENGTH = 10240; // 10 KB cap on string inputs
+
+function requireString(val, name, maxLen = MAX_STRING_LENGTH) {
   if (typeof val !== 'string' || val.trim().length === 0) {
     throw new Error(`${name} is required and must be a non-empty string`);
+  }
+  if (val.length > maxLen) {
+    throw new Error(`${name} exceeds maximum length of ${maxLen} characters`);
   }
   return val.trim();
 }
@@ -354,10 +359,10 @@ async function main() {
     const { McpServer } = require('@modelcontextprotocol/sdk/server/mcp.js');
     const { StdioServerTransport } = require('@modelcontextprotocol/sdk/server/stdio.js');
 
-    const server = new McpServer({ name: 'cc-jira', version: '0.1.0' });
+    const server = new McpServer({ name: 'cc-jira', version: '2.0.0' });
 
     for (const tool of TOOLS) {
-      server.tool(tool.name, tool.description, tool.inputSchema.properties, async (args) => {
+      server.tool(tool.name, tool.description, tool.inputSchema, async (args) => {
         try {
           const result = await handleTool(tool.name, args);
           return { content: [{ type: 'text', text: JSON.stringify(result, null, 2) }] };
