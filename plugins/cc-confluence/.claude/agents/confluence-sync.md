@@ -2,11 +2,6 @@
 name: confluence-sync
 description: "Syncs orchestrator artifacts (plans, reviews, research) to Confluence pages. Use when the user wants to publish session outputs to Confluence."
 model: sonnet
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
 skills:
   - publish-plan
   - publish-review

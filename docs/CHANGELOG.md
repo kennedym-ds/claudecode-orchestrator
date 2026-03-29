@@ -2,7 +2,7 @@
 
 All notable changes to the Claude Code Orchestrator.
 
-## [1.0.0] — 2026-03-25
+## [2.0.0] — 2026-03-25
 
 ### Added
 - 6 plugins: cc-sdlc-core, cc-sdlc-standards, cc-github, cc-jira, cc-confluence, cc-jama

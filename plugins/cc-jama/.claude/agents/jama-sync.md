@@ -2,11 +2,6 @@
 name: jama-sync
 description: "Syncs orchestrator context with Jama Connect — traces requirements, maps test coverage, pulls item details. Use when the user needs Jama data in their session."
 model: sonnet
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
 skills:
   - req-tracing
   - test-coverage-map

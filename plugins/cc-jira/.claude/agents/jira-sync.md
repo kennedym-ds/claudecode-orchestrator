@@ -2,11 +2,6 @@
 name: jira-sync
 description: Syncs orchestrator artifacts to Jira — creates stories from plans, updates issue status, adds review comments. Use proactively when Jira integration is needed.
 model: sonnet
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
 maxTurns: 30
 skills:
   - plan-to-stories

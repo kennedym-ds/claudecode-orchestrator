@@ -61,8 +61,8 @@ if $UNINSTALL; then
     if [ -f "$SETTINGS_FILE" ] && command -v node &>/dev/null; then
       node - "$SETTINGS_FILE" "$HOOKS_TARGET" <<'CLEAN_SETTINGS'
 const fs = require('fs');
-const settingsPath = process.argv[1];
-const hooksDir = process.argv[2];
+const settingsPath = process.argv[2];
+const hooksDir = process.argv[3];
 let settings;
 try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); } catch { process.exit(0); }
 if (settings.hooks) {
@@ -167,8 +167,8 @@ if ! $DRY_RUN; then
     node - "$SETTINGS_FILE" "$HOOKS_TARGET" <<'MERGE_SETTINGS'
 const fs = require('fs');
 const path = require('path');
-const settingsPath = process.argv[1];
-const hooksDir = process.argv[2];
+const settingsPath = process.argv[2];
+const hooksDir = process.argv[3];
 
 let settings = {};
 if (fs.existsSync(settingsPath)) {

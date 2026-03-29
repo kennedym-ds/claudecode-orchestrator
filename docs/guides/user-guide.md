@@ -195,10 +195,10 @@ Review output uses severity tags:
 
 | Severity | Meaning | Action |
 |----------|---------|--------|
-| **CRITICAL** | Security vulnerability or data loss risk | Must fix before merge |
-| **HIGH** | Bug or significant logic error | Should fix before merge |
-| **MEDIUM** | Code quality or maintainability issue | Fix in this PR or create follow-up |
-| **LOW** | Style preference or minor optimization | Optional |
+| **BLOCKER** | Security vulnerability or data loss risk | Must fix before merge |
+| **MAJOR** | Bug or significant logic error | Should fix before merge |
+| **MINOR** | Code quality or maintainability issue | Fix in this PR or create follow-up |
+| **NIT** | Style preference or minor optimization | Optional |
 
 ### Research
 

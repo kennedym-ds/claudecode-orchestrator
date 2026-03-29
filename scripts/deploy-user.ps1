@@ -55,8 +55,8 @@ if ($Uninstall) {
         if ((Test-Path $settingsFile) -and (Get-Command node -ErrorAction SilentlyContinue)) {
             $cleanScript = @'
 const fs = require('fs');
-const settingsPath = process.argv[1];
-const hooksDir = process.argv[2];
+const settingsPath = process.argv[2];
+const hooksDir = process.argv[3];
 let settings;
 try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8').replace(/^\uFEFF/, '')); } catch { process.exit(0); }
 if (settings.hooks) {
@@ -157,8 +157,8 @@ if (-not $DryRun) {
     $nodeScript = @'
 const fs = require('fs');
 const path = require('path');
-const settingsPath = process.argv[1];
-const hooksDir = process.argv[2];
+const settingsPath = process.argv[2];
+const hooksDir = process.argv[3];
 
 let settings = {};
 try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8').replace(/^\uFEFF/, '')); } catch {}

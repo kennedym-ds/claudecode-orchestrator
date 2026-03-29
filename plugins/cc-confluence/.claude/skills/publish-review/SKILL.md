@@ -20,16 +20,16 @@ After a review is complete and findings need to be shared with the team.
 
 | Review Severity | Confluence Format |
 |---|---|
-| CRITICAL | `<ac:structured-macro ac:name="error">` red panel |
-| HIGH | `<ac:structured-macro ac:name="warning">` yellow panel |
-| MEDIUM | `<ac:structured-macro ac:name="note">` blue panel |
-| LOW | `<ac:structured-macro ac:name="info">` grey panel |
+| BLOCKER | `<ac:structured-macro ac:name="error">` red panel |
+| MAJOR | `<ac:structured-macro ac:name="warning">` yellow panel |
+| MINOR | `<ac:structured-macro ac:name="note">` blue panel |
+| NIT | `<ac:structured-macro ac:name="info">` grey panel |
 
 ## Labels
 
 - `orchestrator-review`
 - `auto-generated`
-- Severity label: `has-critical`, `has-high`, etc.
+- Severity label: `has-blocker`, `has-major`, etc.
 
 ## CLI Example
 

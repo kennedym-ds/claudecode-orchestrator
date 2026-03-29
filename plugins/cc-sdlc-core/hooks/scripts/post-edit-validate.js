@@ -22,8 +22,9 @@ try {
       process.exit(0);
     }
 
-    // Validate filePath: must be a real path, reject shell metacharacters
-    if (/[;|&`$(){}]/.test(filePath)) {
+    // Validate filePath: reject shell metacharacters (conservative — execFileSync
+    // doesn't invoke a shell, but guard against injection if invocation changes)
+    if (/[;|&`$]/.test(filePath)) {
       process.stderr.write(`[post-edit-validate] Rejected suspicious file path\n`);
       process.exit(0);
     }
@@ -50,8 +51,8 @@ try {
           timeout: 10000,
           stdio: 'pipe'
         });
-      } catch {
-        // Formatter not installed or failed — non-blocking
+      } catch (fmtErr) {
+        process.stderr.write(`[post-edit-validate] Formatter ${formatter[0]} failed: ${fmtErr.message}\n`);
       }
     }
   }
