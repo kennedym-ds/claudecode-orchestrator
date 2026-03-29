@@ -13,7 +13,7 @@ Compact context while preserving critical state: $ARGUMENTS
    - Model tiers in use
    - Next action
 2. Record any unsaved verification results
-3. Run `/compact` to trigger context compaction
+3. Proceed with context compaction now
 4. The PreCompact hook will snapshot state automatically
 5. After compaction, verify state was restored by the PostCompact hook
 

@@ -12,7 +12,7 @@
 
 | Date | Scope | Verdict | Path |
 |------|-------|---------|------|
-| {date} | {files reviewed} | APPROVE/REQUEST_CHANGES | `artifacts/reviews/{name}.md` |
+| {date} | {files reviewed} | APPROVE/REQUEST_CHANGES/NEEDS_DISCUSSION | `artifacts/reviews/{name}.md` |
 
 ## Research
 

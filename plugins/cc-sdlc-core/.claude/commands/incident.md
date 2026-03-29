@@ -9,6 +9,6 @@ Investigate and respond to: $ARGUMENTS
 3. Execute investigation protocol: triage → isolate → diagnose → fix → verify
 4. Apply 5-why root cause analysis
 5. Categorize fix: HOTFIX (immediate), PROPER (scheduled), SYSTEMIC (architectural)
-6. Generate post-mortem using template to `artifacts/plans/`
+6. Generate post-mortem to `artifacts/sessions/{date}-incident-{slug}.md`
 
 Use the incident-responder agent with incident-response skill.

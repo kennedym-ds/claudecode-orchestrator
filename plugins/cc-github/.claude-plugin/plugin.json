@@ -4,6 +4,7 @@
   "description": "GitHub integration — PR creation and review workflows, issue triage, branch management, and CI/CD status checks via GitHub MCP.",
   "author": "kennedym-ds",
   "license": "MIT",
+  "dependencies": ["cc-sdlc-core"],
   "components": {
     "agents": ".claude/agents/",
     "skills": ".claude/skills/",

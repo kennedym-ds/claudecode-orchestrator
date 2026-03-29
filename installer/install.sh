@@ -85,6 +85,26 @@ if $DRY_RUN; then
 fi
 
 IFS=',' read -ra PLUGIN_LIST <<< "$PLUGINS"
+
+# Auto-include core dependency for integration plugins
+needs_core=false
+for p in "${PLUGIN_LIST[@]}"; do
+  p=$(echo "$p" | tr -d ' ')
+  case "$p" in
+    github|jira|confluence|jama) needs_core=true ;;
+  esac
+done
+if $needs_core; then
+  has_core=false
+  for p in "${PLUGIN_LIST[@]}"; do
+    [ "$(echo "$p" | tr -d ' ')" = "core" ] && has_core=true
+  done
+  if ! $has_core; then
+    log "Adding core (required dependency for integration plugins)"
+    PLUGIN_LIST=("core" "${PLUGIN_LIST[@]}")
+  fi
+fi
+
 INSTALLED=0
 
 for plugin_short in "${PLUGIN_LIST[@]}"; do
@@ -103,6 +123,22 @@ for plugin_short in "${PLUGIN_LIST[@]}"; do
   fi
 
   log "Installing $plugin_dir..."
+
+  # Copy .claude-plugin/ (plugin manifest with mcpServers config)
+  if [[ -d "$src/.claude-plugin" ]]; then
+    find "$src/.claude-plugin" -type f | while read -r file; do
+      rel="${file#$src/}"
+      dest="$TARGET_DIR/$rel"
+      dest_dir="$(dirname "$dest")"
+
+      if $DRY_RUN; then
+        echo "  [copy] $rel"
+      else
+        mkdir -p "$dest_dir"
+        cp "$file" "$dest"
+      fi
+    done
+  fi
 
   # Copy .claude/ contents (agents, commands, skills, rules)
   if [[ -d "$src/.claude" ]]; then

@@ -47,6 +47,13 @@ if ($Plugins -eq 'all') {
 
 $PluginList = $Plugins -split ',' | ForEach-Object { $_.Trim() }
 
+# Auto-include core dependency for integration plugins
+$IntegrationPlugins = @('github', 'jira', 'confluence', 'jama')
+if (($PluginList | Where-Object { $IntegrationPlugins -contains $_ }) -and ($PluginList -notcontains 'core')) {
+    Write-Log "Adding core (required dependency for integration plugins)"
+    $PluginList = @('core') + $PluginList
+}
+
 # Validate target
 if (-not (Test-Path -Path $TargetPath -PathType Container)) {
     throw "Target directory does not exist: $TargetPath"
@@ -75,6 +82,25 @@ foreach ($PluginShort in $PluginList) {
     }
 
     Write-Log "Installing $PluginDir..."
+
+    # Copy .claude-plugin/ (plugin manifest with mcpServers config)
+    $PluginManifestDir = Join-Path $Src '.claude-plugin'
+    if (Test-Path $PluginManifestDir) {
+        Get-ChildItem -Path $PluginManifestDir -Recurse -File | ForEach-Object {
+            $RelPath = $_.FullName.Substring($Src.Length + 1)
+            $DestPath = Join-Path $TargetPath $RelPath
+            $DestDir = Split-Path $DestPath -Parent
+
+            if ($DryRun) {
+                Write-Host "  [copy] $RelPath"
+            } else {
+                if (-not (Test-Path $DestDir)) {
+                    New-Item -ItemType Directory -Path $DestDir -Force | Out-Null
+                }
+                Copy-Item -Path $_.FullName -Destination $DestPath -Force
+            }
+        }
+    }
 
     # Copy .claude/ contents
     $ClaudeDir = Join-Path $Src '.claude'
