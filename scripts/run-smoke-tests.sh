@@ -74,7 +74,7 @@ else
   test_fail "hooks.json missing"
 fi
 
-for script in session-start session-end pre-compact post-compact pre-bash-safety post-edit-validate subagent-stop-gate stop-summary secret-detector; do
+for script in session-start session-end pre-compact post-compact pre-bash-safety post-edit-validate subagent-stop-gate stop-summary secret-detector subagent-start-log deploy-guard dependency-scanner compliance-logger stop-failure pr-gate worktree-create worktree-remove; do
   if [ -f "$HOOK_SCRIPT_BASE/$script.js" ]; then
     test_pass "$script.js"
   else

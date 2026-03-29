@@ -2,29 +2,22 @@
 
 All notable changes to the Claude Code Orchestrator.
 
-## [1.1.0] -- 2026-03-25
+## [1.0.0] — 2026-03-25
 
 ### Added
+- 6 plugins: cc-sdlc-core, cc-sdlc-standards, cc-github, cc-jira, cc-confluence, cc-jama
+- 24 agents: conductor, planner, implementer, reviewer, researcher, security-reviewer, tdd-guide, red-team, doc-updater, and integration agents
+- 54 skills: 18 core workflow, 20 language coding standards, 7 domain overlays, 9 integration
+- 30 slash commands: /conduct, /plan, /implement, /review, /research, /secure, /test, /deploy-check, /doc, /red-team, /audit, /route, /status, /compact, and plugin commands
+- 6 behavioral rules: persona, quality, security, lifecycle, delegation, budget
+- 17 hook scripts: session lifecycle, safety checks, quality gates, secret detection, deploy guard, dependency scanning, pre/post-compact state persistence
 - 3 MCP plugins: cc-jira (8 tools), cc-confluence (6 tools), cc-jama (8 tools)
-- /status command for session state and budget overview
-- /compact command for strategic context compaction
-- artifact-index.md template for session artifact tracking
-- Windows smoke tests (scripts/run-smoke-tests.ps1) -- 59 checks
-- 4 new documentation guides:
-  - CLI Quick Reference (docs/guides/cli-quick-reference.md)
-  - Common Workflows (docs/guides/common-workflows.md)
-  - Troubleshooting (docs/guides/troubleshooting.md)
-  - MCP Plugin Development (docs/guides/mcp-plugin-development.md)
-
-### Fixed
-- validate-assets.ps1: renamed $Verbose to $ShowDetails to avoid CmdletBinding conflict
-- subagent-stop-gate.js: added missing event: 'subagent_stop' field to JSONL log
-- settings.local.json.example: replaced duplicate // keys with single _comment key
-- Stripped UTF-8 BOM from all new files (PowerShell encoding issue)
-
-### Changed
-- Updated onboarding guide with new commands, plugins, project layout, and cross-references
-- Commands count: 12 -> 14 (added status, compact)
+- Three-tier model configuration (heavy/default/fast) with env var overrides
+- 3 settings profiles: budget, standard, premium
+- Validation and smoke test scripts (bash + PowerShell, 59 checks)
+- Deployment scripts for user-level and project-level install
+- Plugin manifest for marketplace distribution
+- Documentation: onboarding, model configuration, CLI reference, workflows, troubleshooting, MCP plugin development
 
 ### Plugin Details
 
@@ -48,18 +41,3 @@ All notable changes to the Claude Code Orchestrator.
 - Agent: jama-sync (Sonnet tier)
 - Commands: /jama-trace, /jama-context
 - Auth: OAuth 2.0 client credentials with token caching
-
-## [1.0.0] — 2026-03-25
-
-### Added
-- 9 focused agents: conductor, planner, implementer, reviewer, researcher, security-reviewer, tdd-guide, red-team, doc-updater
-- 10 workflow skills: tdd-workflow, security-review, coding-standards, plan-workflow, review-workflow, delegation-routing, budget-gatekeeper, strategic-compact, verification-loop, session-continuity
-- 12 slash commands: /conduct, /plan, /implement, /review, /research, /secure, /test, /deploy-check, /doc, /red-team, /audit, /route
-- 6 behavioral rules: persona, quality, security, lifecycle, delegation, budget
-- 9 hook event handlers: session lifecycle, safety checks, quality gates, secret detection
-- Three-tier model configuration (heavy/default/fast) with env var overrides
-- 3 settings profiles: budget, standard, premium
-- Validation and smoke test scripts (bash + PowerShell)
-- Installation scripts for manual setup
-- Plugin manifest for marketplace distribution
-- Documentation: onboarding guide, model configuration guide, templates

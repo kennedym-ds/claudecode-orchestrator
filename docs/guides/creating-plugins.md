@@ -67,7 +67,6 @@ my-plugin/
 │   ├── hooks.json
 │   └── scripts/
 │       └── lint.js
-├── .mcp.json                # Optional: MCP server configs
 ├── .lsp.json                # Optional: LSP server configs
 ├── settings.json            # Optional: default settings
 └── README.md                # Recommended: documentation
@@ -135,7 +134,7 @@ When reviewing code, check for:
 
 ### Agents
 
-Same format as standalone agents. **Security restriction:** Plugin agents cannot use `hooks`, `mcpServers`, or `permissionMode` fields. These are ignored when loading plugin agents.
+Same format as standalone agents. **Security restriction:** Plugin agents cannot use `hooks` or `mcpServers` fields. These are ignored when loading plugin agents. `permissionMode` is supported.
 
 If you need these capabilities, instruct users to copy the agent into `.claude/agents/` or `~/.claude/agents/`.
 
@@ -174,10 +173,13 @@ Plugin hooks go in `hooks/hooks.json` with a `"hooks"` wrapper:
 
 ### MCP Servers
 
-Plugin MCP servers are defined in `.mcp.json` at the plugin root:
+Plugin MCP servers are declared in the plugin manifest at `.claude-plugin/plugin.json`:
 
 ```json
 {
+  "name": "my-plugin",
+  "description": "My plugin",
+  "version": "1.0.0",
   "mcpServers": {
     "my-server": {
       "type": "stdio",
@@ -296,7 +298,7 @@ Submit at [claude.ai/settings/plugins/submit](https://claude.ai/settings/plugins
 2. **Include README.md** — Document installation, usage, and configuration
 3. **Version semantically** — Track breaking changes in version numbers
 4. **Keep skills focused** — Each skill should do one thing well
-5. **Document security limitations** — Plugin agents can't use hooks/mcpServers/permissionMode
+5. **Document security limitations** — Plugin agents can't use hooks/mcpServers
 6. **Test with `--plugin-dir`** before distributing
 7. **Use `/reload-plugins`** during development instead of restarting sessions
 
@@ -419,13 +421,13 @@ If plugin B depends on plugin A being installed:
 |-----------|----------------------|--------|
 | `hooks` in agent frontmatter | ✅ Allowed | ❌ Ignored |
 | `mcpServers` in agent frontmatter | ✅ Allowed | ❌ Ignored |
-| `permissionMode` in agent frontmatter | ✅ Allowed | ❌ Ignored |
+| `permissionMode` in agent frontmatter | ✅ Allowed | ✅ Allowed |
 | `tools` / `disallowedTools` | ✅ Allowed | ✅ Allowed |
 | `model` / `effort` / `memory` | ✅ Allowed | ✅ Allowed |
 | Plugin-level MCP servers | N/A | ✅ Via plugin.json |
 | Plugin-level hooks | N/A | ✅ Via hooks/hooks.json |
 
-**Why the restriction?** Plugin agents are distributed code. Allowing them to set `permissionMode: bypassPermissions` or define arbitrary hooks would be a security risk. These capabilities are only trusted from the project owner's `.claude/` directory.
+**Why the restriction?** Plugin agents are distributed code. Allowing them to define arbitrary hooks or MCP servers would be a security risk. `permissionMode` is allowed because it restricts agent capabilities rather than expanding them. `hooks` and `mcpServers` are only trusted from the project owner's `.claude/` directory.
 
 **Workaround:** If a plugin agent needs these capabilities, instruct users to copy it to their local `.claude/agents/` directory.
 
@@ -448,7 +450,7 @@ If plugin B depends on plugin A being installed:
 
 1. **Check name conflicts** — If multiple plugins define the same agent name, higher-priority wins
 2. **Check conductor tools** — Integration agents need to be listed in the conductor's `Agent(...)` tool list
-3. **Check security restrictions** — Plugin agents can't use hooks, mcpServers, or permissionMode
+3. **Check security restrictions** — Plugin agents can't use hooks or mcpServers
 
 ### MCP server not connecting
 

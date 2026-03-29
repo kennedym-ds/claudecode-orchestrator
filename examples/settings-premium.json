@@ -1,0 +1,7 @@
+{
+  "env": {
+    "ORCH_MODEL_HEAVY": "claude-opus-4-6-20260320",
+    "ORCH_MODEL_DEFAULT": "claude-opus-4-6-20260320",
+    "ORCH_MODEL_FAST": "claude-sonnet-4-6-20260320"
+  }
+}

@@ -1,6 +1,6 @@
 # User Guide
 
-Comprehensive guide to using cc-sdlc for orchestrated software development with Claude Code.
+Guide to using cc-sdlc for orchestrated software development with Claude Code.
 
 ## Table of Contents
 

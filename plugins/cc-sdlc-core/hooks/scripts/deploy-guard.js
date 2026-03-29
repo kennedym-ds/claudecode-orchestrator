@@ -17,6 +17,7 @@ const DEPLOY_PATTERNS = [
   /git\s+push.*--force.*main/i,
   /git\s+push.*--force.*master/i,
   /git\s+push.*--force.*release/i,
+  /git\s+push.*--force-all/i,           // nukes all remote refs — always requires approval
   /docker\s+push.*prod/i,
 ];
 

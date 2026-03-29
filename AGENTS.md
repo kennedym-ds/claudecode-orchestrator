@@ -1,7 +1,7 @@
 # cc-sdlc — Project Playbook
 
 > **Status:** Active  
-> **Version:** 2.0.0
+> **Version:** 1.0.0
 
 Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 54 skills, 30 commands, hook-driven quality gates, complexity-based routing.
 
@@ -222,7 +222,7 @@ pwsh -File scripts/validate-assets.ps1
 Deploy agents, skills, commands, rules, and hooks to `~/.claude/` so they are available in **all** Claude Code projects:
 
 ```bash
-# macOS/Linux (requires jq for settings merge)
+# macOS/Linux (requires Node.js for settings merge)
 bash scripts/deploy-user.sh
 
 # Windows PowerShell

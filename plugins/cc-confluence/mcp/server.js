@@ -71,7 +71,7 @@ function confluenceFetch(method, path, body) {
 const TOOLS = [
   {
     name: 'search_pages',
-    description: 'Search Confluence pages by text or CQL (Confluence Query Language). Returns title, space, last modified.',
+    description: 'Search Confluence pages. Accepts plain text (auto-converted to CQL text search) or explicit CQL. Returns title, space, last modified.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -150,13 +150,32 @@ const TOOLS = [
   },
 ];
 
+// --- Input Validation ---
+function requireString(val, name) {
+  if (typeof val !== 'string' || val.trim().length === 0) {
+    throw new Error(`${name} is required and must be a non-empty string`);
+  }
+  return val.trim();
+}
+
+function clampPagination(val, defaultVal, max) {
+  const n = typeof val === 'number' ? val : defaultVal;
+  return Math.max(1, Math.min(n, max));
+}
+
 // --- Tool Handlers ---
 async function handleTool(name, args) {
   switch (name) {
     case 'search_pages': {
-      const maxResults = Math.min(args.max_results || 10, 25);
+      requireString(args.query, 'query');
+      const maxResults = clampPagination(args.max_results, 10, 25);
       let cql = args.query;
-      if (args.space_key && !cql.includes('space')) {
+      // Auto-wrap plain text in CQL text~ search if it doesn't look like CQL
+      // (CQL operators: =, ~, !=, IN, AND, OR, NOT, space, type, label, etc.)
+      if (!/[=~!]|(?:^|\s)(?:AND|OR|NOT|IN|type|space|label|ancestor|parent)\b/i.test(cql)) {
+        cql = `type = "page" AND text ~ "${cql.replace(/"/g, '\\"')}"`;
+      }
+      if (args.space_key && !cql.toLowerCase().includes('space')) {
         cql = `space = "${args.space_key}" AND (${cql})`;
       }
       const result = await confluenceFetch('GET',
@@ -173,10 +192,13 @@ async function handleTool(name, args) {
     case 'get_page': {
       let page;
       if (args.page_id) {
+        requireString(args.page_id, 'page_id');
         page = await confluenceFetch('GET',
           `/wiki/rest/api/content/${encodeURIComponent(args.page_id)}?expand=body.${args.body_format || 'storage'},version,space,metadata.labels`
         );
       } else if (args.title && args.space_key) {
+        requireString(args.title, 'title');
+        requireString(args.space_key, 'space_key');
         const results = await confluenceFetch('GET',
           `/wiki/rest/api/content?title=${encodeURIComponent(args.title)}&spaceKey=${encodeURIComponent(args.space_key)}&expand=body.${args.body_format || 'storage'},version,metadata.labels`
         );
@@ -199,6 +221,9 @@ async function handleTool(name, args) {
     }
 
     case 'create_page': {
+      requireString(args.space_key, 'space_key');
+      requireString(args.title, 'title');
+      requireString(args.body, 'body');
       const payload = {
         type: 'page',
         title: args.title,
@@ -228,6 +253,11 @@ async function handleTool(name, args) {
     }
 
     case 'update_page': {
+      requireString(args.page_id, 'page_id');
+      requireString(args.body, 'body');
+      if (typeof args.version_number !== 'number' || args.version_number < 1) {
+        throw new Error('version_number is required and must be a positive integer');
+      }
       // Fetch existing page to preserve title when not provided
       let title = args.title;
       if (!title) {
@@ -259,6 +289,7 @@ async function handleTool(name, args) {
     }
 
     case 'get_space': {
+      requireString(args.space_key, 'space_key');
       const space = await confluenceFetch('GET',
         `/wiki/rest/api/space/${encodeURIComponent(args.space_key)}?expand=description.plain,homepage`
       );
@@ -271,7 +302,8 @@ async function handleTool(name, args) {
     }
 
     case 'get_page_children': {
-      const maxResults = Math.min(args.max_results || 25, 50);
+      requireString(args.page_id, 'page_id');
+      const maxResults = clampPagination(args.max_results, 25, 50);
       const result = await confluenceFetch('GET',
         `/wiki/rest/api/content/${encodeURIComponent(args.page_id)}/child/page?limit=${maxResults}&expand=version`
       );

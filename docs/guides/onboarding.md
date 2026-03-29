@@ -8,9 +8,9 @@
    cd claudecode-orchestrator
    ```
 
-2. **Deploy to your user folder** (recommended â‚¬â€ available in all projects):
+2. **Deploy to your user folder** (recommended — available in all projects):
    ```bash
-   # macOS/Linux (requires jq for settings merge)
+   # macOS/Linux (requires Node.js for settings merge)
    bash scripts/deploy-user.sh
 
    # Windows PowerShell
@@ -23,7 +23,7 @@
    pwsh -File installer/install.ps1 -TargetPath C:\path\to\project   # Windows
    ```
 
-3. **Configure model tiers** (optional â‚¬â€ defaults are already set):
+3. **Configure model tiers** (optional — defaults are already set):
    Edit `~/.claude/settings.json` (user-level) or `.claude/settings.json` (project-level):
    ```json
    {
@@ -35,16 +35,25 @@
    }
    ```
    Or copy a profile from `examples/`:
-   - `settings-budget.json` â‚¬â€ Haiku default, minimal Opus
-   - `settings-standard.json` â‚¬â€ Sonnet default, Opus for reviews (recommended)
-   - `settings-premium.json` â‚¬â€ Opus everywhere
+   - `settings-budget.json` — Haiku default, minimal Opus
+   - `settings-standard.json` — Sonnet default, Opus for reviews (recommended)
+   - `settings-premium.json` — Opus everywhere
 
-4. **Validate:**
+4. **Initialize session artifacts** (required for state-survives-compaction to work):
+   ```bash
+   bash scripts/init-artifacts.sh      # macOS/Linux
+   pwsh -File scripts/init-artifacts.ps1  # Windows
+   ```
+   This creates `artifacts/memory/activeContext.md` and the full artifact directory tree.
+   The pre/post-compact hooks depend on this file existing — skip this and session state
+   will not survive `/compact`.
+
+5. **Validate:**
    ```bash
    bash scripts/validate-assets.sh --verbose
    ```
 
-5. **Start working:**
+6. **Start working:**
    ```bash
    claude --agent conductor
    # /conduct Add user authentication to the API
@@ -57,10 +66,10 @@
 Makes all orchestrator assets globally available. Best for personal setups.
 
 ```bash
-# Copy mode (default) â‚¬â€ re-run to sync updates
+# Copy mode (default) — re-run to sync updates
 bash scripts/deploy-user.sh
 
-# Symlink mode â‚¬â€ auto-updates when you pull repo changes
+# Symlink mode — auto-updates when you pull repo changes
 bash scripts/deploy-user.sh --mode symlink
 
 # Preview changes without writing
@@ -73,7 +82,7 @@ bash scripts/deploy-user.sh --uninstall
 **How it works:**
 - Agents, skills, commands, rules copied/symlinked to `~/.claude/`
 - Hook scripts deployed to `~/.claude/hooks/scripts/` with absolute paths in settings
-- Settings are **merged** â‚¬â€ existing env vars, permissions, and model choices preserved
+- Settings are **merged** — existing env vars, permissions, and model choices preserved
 - A manifest file (`.cc-sdlc-manifest.json`) tracks deployed files for clean uninstall
 - Previous settings backed up to `~/.claude/.orchestrator-backup/`
 
@@ -148,18 +157,26 @@ You: /conduct "Add feature X"
 ## Project Layout
 
 ```
-.claude/
-  agents/     -> 9 subagent definitions
-  skills/     -> 10 workflow skills
-  commands/   -> 14 slash commands
-  rules/      -> 6 behavioral guardrails
-  settings.json -> Model tiers + permissions
+plugins/
+  cc-sdlc-core/
+    .claude/
+      agents/     -> 19 core agent definitions
+      skills/     -> 18 workflow skills
+      commands/   -> 22 slash commands
+      rules/      -> 6 behavioral guardrails
+    hooks/        -> Hook config + 17 handler scripts
+  cc-sdlc-standards/  -> 20 language + 7 domain coding standards
+  cc-github/      -> GitHub PR/issue workflows
+  cc-jira/        -> Jira integration via MCP
+  cc-confluence/  -> Confluence integration via MCP
+  cc-jama/        -> Jama requirements tracing via MCP
 
-hooks/          -> Hook config + 10 handler scripts
-scripts/        -> Validation + installation
-plugins/        -> 3 MCP plugins (Jira, Confluence, Jama)
-artifacts/      -> Session outputs (plans, reviews, etc.)
-docs/guides/    -> Onboarding, CLI reference, workflows, troubleshooting
+.claude/
+  settings.json   -> Model tiers + permissions + hooks
+
+scripts/          -> Validation, installation, deployment
+artifacts/        -> Session outputs (plans, reviews, etc.)
+docs/guides/      -> Onboarding, CLI reference, workflows, troubleshooting
 ```
 
 ## Further Reading

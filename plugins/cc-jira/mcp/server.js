@@ -176,11 +176,25 @@ const TOOLS = [
   },
 ];
 
+// --- Input Validation ---
+function requireString(val, name) {
+  if (typeof val !== 'string' || val.trim().length === 0) {
+    throw new Error(`${name} is required and must be a non-empty string`);
+  }
+  return val.trim();
+}
+
+function clampPagination(val, defaultVal, max) {
+  const n = typeof val === 'number' ? val : defaultVal;
+  return Math.max(1, Math.min(n, max));
+}
+
 // --- Tool Handlers ---
 async function handleTool(name, args) {
   switch (name) {
     case 'search_issues': {
-      const maxResults = Math.min(args.max_results || 20, 50);
+      requireString(args.jql, 'jql');
+      const maxResults = clampPagination(args.max_results, 20, 50);
       const result = await jiraFetch('GET',
         `/rest/api/3/search?jql=${encodeURIComponent(args.jql)}&maxResults=${maxResults}&fields=key,summary,status,assignee,priority,issuetype`
       );
@@ -195,6 +209,7 @@ async function handleTool(name, args) {
     }
 
     case 'get_issue': {
+      requireString(args.issue_key, 'issue_key');
       const issue = await jiraFetch('GET',
         `/rest/api/3/issue/${encodeURIComponent(args.issue_key)}?fields=summary,description,status,assignee,priority,issuetype,labels,comment,issuelinks,parent,created,updated`
       );
@@ -224,6 +239,8 @@ async function handleTool(name, args) {
     }
 
     case 'create_issue': {
+      requireString(args.project_key, 'project_key');
+      requireString(args.summary, 'summary');
       const fields = {
         project: { key: args.project_key },
         summary: args.summary,
@@ -245,6 +262,7 @@ async function handleTool(name, args) {
     }
 
     case 'update_issue': {
+      requireString(args.issue_key, 'issue_key');
       const fields = {};
       if (args.summary) fields.summary = args.summary;
       if (args.description) {
@@ -262,6 +280,7 @@ async function handleTool(name, args) {
     }
 
     case 'transition_issue': {
+      requireString(args.issue_key, 'issue_key');
       if (!args.transition_id) {
         const result = await jiraFetch('GET',
           `/rest/api/3/issue/${encodeURIComponent(args.issue_key)}/transitions`
@@ -276,6 +295,8 @@ async function handleTool(name, args) {
     }
 
     case 'add_comment': {
+      requireString(args.issue_key, 'issue_key');
+      requireString(args.body, 'body');
       const comment = {
         body: {
           type: 'doc', version: 1,
@@ -289,6 +310,7 @@ async function handleTool(name, args) {
     }
 
     case 'get_sprint': {
+      requireString(args.board_id, 'board_id');
       const sprints = await jiraFetch('GET',
         `/rest/agile/1.0/board/${encodeURIComponent(args.board_id)}/sprint?state=active`
       );
@@ -308,6 +330,7 @@ async function handleTool(name, args) {
     }
 
     case 'get_project': {
+      requireString(args.project_key, 'project_key');
       const project = await jiraFetch('GET',
         `/rest/api/3/project/${encodeURIComponent(args.project_key)}`
       );

@@ -44,11 +44,28 @@ deploy_file() {
 if $UNINSTALL; then
   if [ -f "$MANIFEST" ]; then
     echo "Removing deployed cc-sdlc assets..."
-    # Read manifest and remove files (simple line-based)
-    while IFS= read -r file; do
-      [ -f "$file" ] && rm "$file" && echo "  Removed $file"
-    done < <(python3 -c "import json,sys; [print(f) for f in json.load(open('$MANIFEST'))['files']]" 2>/dev/null || true)
+    # Read manifest and remove files using node (already a required dependency)
+    if command -v node &>/dev/null; then
+      node -e "
+        const m = JSON.parse(require('fs').readFileSync('$MANIFEST', 'utf8'));
+        (m.files || []).forEach(f => {
+          try { require('fs').unlinkSync(f); console.log('  Removed ' + f); } catch {}
+        });
+      " 2>/dev/null
+    fi
     rm "$MANIFEST"
+
+    # Restore backed-up settings if available
+    BACKUP_DIR="$TARGET/.orchestrator-backup"
+    SETTINGS_FILE="$TARGET/settings.json"
+    if [ -d "$BACKUP_DIR" ]; then
+      LATEST_BACKUP=$(ls -t "$BACKUP_DIR"/settings.json.* 2>/dev/null | head -1)
+      if [ -n "$LATEST_BACKUP" ]; then
+        cp "$LATEST_BACKUP" "$SETTINGS_FILE"
+        echo "  Restored settings.json from backup: $(basename "$LATEST_BACKUP")"
+      fi
+    fi
+
     echo "Uninstall complete."
   else
     echo "No manifest found — nothing to uninstall."
@@ -57,6 +74,13 @@ if $UNINSTALL; then
 fi
 
 echo "Deploying cc-sdlc assets to $TARGET (mode: $MODE)..."
+
+# Preflight: Node.js is required for settings merge and manifest writing
+if ! command -v node &>/dev/null; then
+  echo "ERROR: Node.js is required for deployment (used for settings.json merge)."
+  echo "Install Node.js from https://nodejs.org/ and re-run."
+  exit 1
+fi
 
 DEPLOYED=()
 
@@ -117,8 +141,8 @@ if ! $DRY_RUN; then
     node -e "
 const fs = require('fs');
 const path = require('path');
-const settingsPath = '$SETTINGS_FILE';
-const hooksDir = '$HOOKS_TARGET';
+const settingsPath = process.argv[1];
+const hooksDir = process.argv[2];
 
 let settings = {};
 if (fs.existsSync(settingsPath)) {
@@ -155,7 +179,7 @@ settings.hooks = {
 };
 
 fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
-" 2>/dev/null && echo "Settings merged at $SETTINGS_FILE" || echo "Warning: settings merge skipped (node required)"
+" -- "$SETTINGS_FILE" "$HOOKS_TARGET" 2>/dev/null && echo "Settings merged at $SETTINGS_FILE" || echo "Warning: settings merge skipped (node required)"
   else
     echo "Warning: settings merge skipped (node not found — install Node.js for full deployment)"
   fi
@@ -163,11 +187,19 @@ fi
 
 # Write manifest
 if ! $DRY_RUN; then
-  python3 -c "
-import json
-files = $(printf '%s\n' "${DEPLOYED[@]}" | python3 -c "import sys,json; print(json.dumps([l.strip() for l in sys.stdin]))")
-json.dump({'files': files, 'mode': '$MODE'}, open('$MANIFEST', 'w'), indent=2)
-" 2>/dev/null || true
+  # Build JSON array of deployed files
+  DEPLOYED_JSON="["
+  for i in "${!DEPLOYED[@]}"; do
+    [ "$i" -gt 0 ] && DEPLOYED_JSON+=","
+    DEPLOYED_JSON+="\"${DEPLOYED[$i]}\""
+  done
+  DEPLOYED_JSON+="]"
+
+  node -e "
+    const fs = require('fs');
+    const manifest = { files: JSON.parse(process.argv[1]), mode: process.argv[2] };
+    fs.writeFileSync(process.argv[3], JSON.stringify(manifest, null, 2) + '\n');
+  " -- "$DEPLOYED_JSON" "$MODE" "$MANIFEST" 2>/dev/null || echo "Warning: manifest write failed"
 fi
 
 echo "Deployed ${#DEPLOYED[@]} files."

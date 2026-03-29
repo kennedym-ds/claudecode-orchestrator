@@ -7,8 +7,7 @@ Build MCP (Model Context Protocol) server plugins for Claude Code. This guide co
 ```
 your-plugin/
 +-- .claude-plugin/
-|   +-- plugin.json        # Plugin manifest
-+-- .mcp.json              # MCP server configuration
+|   +-- plugin.json        # Plugin manifest (includes mcpServers config)
 +-- package.json           # Node.js dependencies
 +-- mcp/
 |   +-- server.js          # MCP server implementation
@@ -48,7 +47,9 @@ Define what operations your plugin exposes. Each tool has a name, description, i
 mkdir -p my-plugin/.claude-plugin my-plugin/mcp my-plugin/skills my-plugin/agents my-plugin/commands
 ```
 
-### plugin.json
+### plugin.json — MCP Server Configuration
+
+MCP servers are declared inside the plugin manifest at `.claude-plugin/plugin.json`:
 
 ```json
 {
@@ -57,27 +58,21 @@ mkdir -p my-plugin/.claude-plugin my-plugin/mcp my-plugin/skills my-plugin/agent
   "description": "What this plugin integrates with and why.",
   "author": "your-name",
   "repository": "your-repo",
-  "mcpServers": ["my-plugin"],
-  "skills": ["skill-one", "skill-two"],
-  "agents": ["my-agent"],
-  "commands": ["my-command"]
-}
-```
-
-### .mcp.json
-
-```json
-{
   "mcpServers": {
     "my-plugin": {
+      "type": "stdio",
       "command": "node",
       "args": ["mcp/server.js"],
-      "cwd": "plugins/my-plugin",
       "env": {
         "MY_API_URL": "",
         "MY_API_TOKEN": ""
       }
     }
+  },
+  "skills": ["skill-one", "skill-two"],
+  "agents": ["my-agent"],
+  "commands": ["my-command"]
+}
   }
 }
 ```

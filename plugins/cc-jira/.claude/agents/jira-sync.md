@@ -7,7 +7,6 @@ tools:
   - Grep
   - Glob
   - Bash
-permissionMode: default
 maxTurns: 30
 skills:
   - plan-to-stories

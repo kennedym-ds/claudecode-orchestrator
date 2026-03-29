@@ -215,6 +215,26 @@ const TOOLS = [
   },
 ];
 
+// --- Input Validation ---
+function requireNumber(val, name) {
+  if (typeof val !== 'number' || !Number.isFinite(val) || val < 0) {
+    throw new Error(`${name} is required and must be a non-negative number`);
+  }
+  return val;
+}
+
+function requireString(val, name) {
+  if (typeof val !== 'string' || val.trim().length === 0) {
+    throw new Error(`${name} is required and must be a non-empty string`);
+  }
+  return val.trim();
+}
+
+function clampPagination(val, defaultVal, max) {
+  const n = typeof val === 'number' ? val : defaultVal;
+  return Math.max(1, Math.min(n, max));
+}
+
 // --- Tool Handlers ---
 function formatItem(item) {
   return {
@@ -234,8 +254,9 @@ function formatItem(item) {
 async function handleTool(name, args) {
   switch (name) {
     case 'get_items': {
-      const maxResults = Math.min(args.max_results || 20, 50);
-      const startAt = args.start_at || 0;
+      requireNumber(args.project_id, 'project_id');
+      const maxResults = clampPagination(args.max_results, 20, 50);
+      const startAt = Math.max(args.start_at || 0, 0);
       let path = `/rest/v1/items?project=${args.project_id}&startAt=${startAt}&maxResults=${maxResults}`;
       if (args.item_type) path += `&itemType=${args.item_type}`;
       const result = await jamaFetch('GET', path);
@@ -248,7 +269,8 @@ async function handleTool(name, args) {
     }
 
     case 'search_items': {
-      const maxResults = Math.min(args.max_results || 20, 50);
+      requireString(args.query, 'query');
+      const maxResults = clampPagination(args.max_results, 20, 50);
       let path = `/rest/v1/abstractitems?contains=${encodeURIComponent(args.query)}&maxResults=${maxResults}`;
       if (args.project_id) path += `&project=${args.project_id}`;
       if (args.item_type) path += `&itemType=${args.item_type}`;
@@ -260,12 +282,14 @@ async function handleTool(name, args) {
     }
 
     case 'get_item': {
+      requireNumber(args.item_id, 'item_id');
       const result = await jamaFetch('GET', `/rest/v1/items/${encodeURIComponent(args.item_id)}`);
       return formatItem(result.data);
     }
 
     case 'get_item_children': {
-      const maxResults = Math.min(args.max_results || 20, 50);
+      requireNumber(args.item_id, 'item_id');
+      const maxResults = clampPagination(args.max_results, 20, 50);
       const result = await jamaFetch('GET',
         `/rest/v1/items/${encodeURIComponent(args.item_id)}/children?maxResults=${maxResults}`
       );
@@ -276,7 +300,9 @@ async function handleTool(name, args) {
     }
 
     case 'get_relationships': {
-      const direction = args.direction || 'both';
+      requireNumber(args.item_id, 'item_id');
+      const validDirections = ['upstream', 'downstream', 'both'];
+      const direction = validDirections.includes(args.direction) ? args.direction : 'both';
       const relationships = [];
 
       if (direction === 'upstream' || direction === 'both') {
@@ -309,7 +335,8 @@ async function handleTool(name, args) {
     }
 
     case 'get_test_runs': {
-      const maxResults = Math.min(args.max_results || 20, 50);
+      requireNumber(args.test_cycle_id, 'test_cycle_id');
+      const maxResults = clampPagination(args.max_results, 20, 50);
       const result = await jamaFetch('GET',
         `/rest/v1/testcycles/${encodeURIComponent(args.test_cycle_id)}/testruns?maxResults=${maxResults}`
       );
@@ -327,7 +354,7 @@ async function handleTool(name, args) {
     }
 
     case 'get_projects': {
-      const maxResults = Math.min(args.max_results || 20, 50);
+      const maxResults = clampPagination(args.max_results, 20, 50);
       const result = await jamaFetch('GET', `/rest/v1/projects?maxResults=${maxResults}`);
       return (result.data || []).map((p) => ({
         id: p.id, projectKey: p.projectKey,

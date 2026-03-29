@@ -66,7 +66,7 @@ Write-Host "Hooks:"
 if (Test-Path $hooksJsonPath) { Test-Pass "hooks.json exists" }
 else { Test-Fail "hooks.json missing" }
 
-foreach ($script in @('session-start','session-end','pre-compact','post-compact','pre-bash-safety','post-edit-validate','subagent-stop-gate','stop-summary','secret-detector','subagent-start-log')) {
+foreach ($script in @('session-start','session-end','pre-compact','post-compact','pre-bash-safety','post-edit-validate','subagent-stop-gate','stop-summary','secret-detector','subagent-start-log','deploy-guard','dependency-scanner','compliance-logger','stop-failure','pr-gate','worktree-create','worktree-remove')) {
     if (Test-Path (Join-Path $hookScriptBase "$script.js")) { Test-Pass "$script.js" }
     else { Test-Fail "$script.js - missing" }
 }

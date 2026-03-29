@@ -7,17 +7,36 @@
 const fs = require('fs');
 
 const BLOCKED_PATTERNS = [
+  // Filesystem destruction
   /rm\s+(-rf|-fr)\s+[\/~]/i,           // rm -rf / or ~
-  /rm\s+(-rf|-fr)\s+\.\s/i,            // rm -rf .
-  /DROP\s+(TABLE|DATABASE|SCHEMA)/i,    // SQL destructive
+  /rm\s+(-rf|-fr)\s+\.\s*$/i,          // rm -rf . (end of command)
+  /rm\s+(-rf|-fr)\s+\.\s/i,            // rm -rf . (followed by more)
+
+  // SQL destructive
+  /DROP\s+(TABLE|DATABASE|SCHEMA)/i,
   /TRUNCATE\s+TABLE/i,
   /DELETE\s+FROM\s+\w+\s*;?\s*$/i,     // DELETE without WHERE
+
+  // Disk/filesystem operations
   /mkfs\./i,                            // Format filesystem
-  /dd\s+if=/i,                          // Direct disk write
-  />\s*\/dev\/sd/i,                     // Write to block device
-  /chmod\s+-R\s+777/i,                  // Dangerous permissions
-  /curl.*\|\s*(bash|sh)/i,             // Pipe curl to shell
-  /wget.*\|\s*(bash|sh)/i,
+  /dd\s+if=.*of=\/dev\//i,             // dd writing to block device
+  />\s*\/dev\/sd/i,                     // Redirect to block device
+
+  // Dangerous permission changes
+  /chmod\s+-R\s+777/i,                  // Recursive 777
+  /chmod\s+777\s/i,                     // Non-recursive 777 (still risky on key files)
+  /chmod\s+777$/i,                      // 777 at end of command
+
+  // Privilege escalation abuse
+  /sudo\s+(rm|chmod|dd|mkfs|shred|wipe)/i,  // sudo + destructive tool
+
+  // Remote code execution via pipe
+  /curl[^|]*\|\s*(bash|sh|zsh)/i,       // curl | shell
+  /wget[^|]*\|\s*(bash|sh|zsh)/i,       // wget | shell
+
+  // Force-push to any branch (covered broadly; deploy-guard handles prod-specific patterns)
+  /git\s+push\s+.*--force-with-lease.*main/i,
+  /git\s+push\s+.*--force-all/i,        // force-all pushes everything, catastrophic on shared repos
 ];
 
 try {
@@ -28,12 +47,10 @@ try {
 
   if (input) {
     const data = JSON.parse(input);
-    // CC hook input uses snake_case: tool_input.command
     const command = data.tool_input?.command || '';
 
     for (const pattern of BLOCKED_PATTERNS) {
       if (pattern.test(command)) {
-        // Exit 2 blocks the tool use; stderr is shown to Claude as feedback
         process.stderr.write(`Blocked destructive command matching pattern: ${pattern.source}`);
         process.exit(2);
       }

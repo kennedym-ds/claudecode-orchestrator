@@ -48,6 +48,22 @@ if ($Uninstall) {
             }
         }
         Remove-Item $Manifest -Force
+
+        # Restore backed-up settings if available
+        $backupDir = Join-Path $Target '.orchestrator-backup'
+        $settingsFile = Join-Path $Target 'settings.json'
+        if (Test-Path $backupDir) {
+            $latestBackup = Get-ChildItem "$backupDir\settings.json.*" -ErrorAction SilentlyContinue |
+                Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            if ($latestBackup -and (Test-Path $settingsFile)) {
+                Copy-Item $latestBackup.FullName $settingsFile -Force
+                Write-Host "  Restored settings.json from backup: $($latestBackup.Name)"
+            } elseif ($latestBackup) {
+                Copy-Item $latestBackup.FullName $settingsFile -Force
+                Write-Host "  Restored settings.json from backup: $($latestBackup.Name)"
+            }
+        }
+
         Write-Host "Uninstall complete."
     } else {
         Write-Host "No manifest found — nothing to uninstall."
@@ -56,6 +72,14 @@ if ($Uninstall) {
 }
 
 Write-Host "Deploying cc-sdlc assets to $Target (mode: $Mode)..."
+
+# Preflight: Node.js is required for settings merge (avoids PS 5.1 JSON issues)
+if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
+    Write-Host "ERROR: Node.js is required for deployment (used for settings.json merge)." -ForegroundColor Red
+    Write-Host "Install Node.js from https://nodejs.org/ and re-run." -ForegroundColor Red
+    exit 1
+}
+
 $deployed = @()
 
 # Core agents
@@ -132,8 +156,8 @@ if (-not $DryRun) {
     $nodeScript = @"
 const fs = require('fs');
 const path = require('path');
-const hooksDir = '$hooksAbs';
 const settingsFile = process.argv[1];
+const hooksDir = process.argv[2];
 
 let settings = {};
 try { settings = JSON.parse(fs.readFileSync(settingsFile, 'utf8').replace(/^\uFEFF/, '')); } catch {}
@@ -172,7 +196,7 @@ settings.hooks = {
 
 fs.writeFileSync(settingsFile, JSON.stringify(settings, null, 2) + '\n');
 "@
-    $nodeScript | node - ($settingsFile -replace '\\', '/')
+    $nodeScript | node - ($settingsFile -replace '\\', '/') ($hooksAbs)
     Write-Host "Settings merged at $settingsFile"
 }
 

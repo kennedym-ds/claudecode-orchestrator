@@ -1,6 +1,6 @@
 # Installation Guide
 
-Complete guide for installing cc-sdlc into your Claude Code environment.
+Guide for installing cc-sdlc into your Claude Code environment.
 
 ## Table of Contents
 
@@ -96,7 +96,7 @@ pwsh -File installer/install.ps1 -TargetPath C:\projects\myapp
 Installs to `~/.claude/` so agents and skills are available in all projects.
 
 ```bash
-# macOS/Linux (requires jq for settings merge)
+# macOS/Linux (requires Node.js for settings merge)
 bash scripts/deploy-user.sh
 
 # Windows PowerShell

@@ -24,7 +24,7 @@ Publish artifacts from the current session to Confluence.
 
 ## Requirements
 
-- cc-confluence MCP server must be running (configured in `.mcp.json`)
+- cc-confluence MCP server must be running (configured in `plugin.json` mcpServers)
 - Target Confluence space must exist and user must have write access
 - Environment variables: `CONFLUENCE_BASE_URL`, `CONFLUENCE_USER_EMAIL`, `CONFLUENCE_API_TOKEN`
 

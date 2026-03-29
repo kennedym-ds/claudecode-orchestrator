@@ -1,6 +1,6 @@
 # cc-sdlc — Full SDLC Orchestration for Claude Code
 
-Modular plugin marketplace for Claude Code covering the entire software development lifecycle. 24 specialized agents, 54 skills, 30 commands, hook-driven quality gates, and complexity-based routing with configurable model tiers.
+Modular plugin collection for Claude Code that spans the software development lifecycle. 24 specialized agents, 54 skills, 30 commands, hook-driven quality gates, and complexity-based routing with configurable model tiers.
 
 ## What This Is
 

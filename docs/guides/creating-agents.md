@@ -251,7 +251,7 @@ permissionMode: default
 ## Important Constraints
 
 - **Subagents cannot spawn other subagents.** Only the main thread (via `--agent`) can use `Agent()` to spawn subagents.
-- **Plugin agents cannot use** `hooks`, `mcpServers`, or `permissionMode` (security restriction).
+- **Plugin agents cannot use** `hooks` or `mcpServers` (security restriction). `permissionMode` is supported.
 - **Skills are not inherited** from the parent conversation — list them explicitly.
 - **Description drives delegation** — Claude uses the `description` field to decide when to delegate. Include "Use proactively" for auto-delegation.
 
@@ -418,7 +418,7 @@ description: >
 1. **Check `tools` field** — If present, only listed tools are available
 2. **Check `disallowedTools`** — Is the needed tool blocked?
 3. **Check `permissionMode`** — `plan` mode blocks all writes
-4. **Plugin restriction** — Plugin agents can't use `hooks`, `mcpServers`, or `permissionMode`
+4. **Plugin restriction** — Plugin agents can't use `hooks` or `mcpServers`
 
 ### Memory not persisting
 
