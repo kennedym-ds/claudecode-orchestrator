@@ -161,10 +161,10 @@ plugins/
   cc-sdlc-core/
     .claude/
       agents/     -> 19 core agent definitions
-      skills/     -> 18 workflow skills
-      commands/   -> 22 slash commands
+      skills/     -> 19 workflow skills
+      commands/   -> 24 slash commands
       rules/      -> 6 behavioral guardrails
-    hooks/        -> Hook config + 17 handler scripts
+    hooks/        -> Hook config + 20 handler scripts
   cc-sdlc-standards/  -> 20 language + 7 domain coding standards
   cc-github/      -> GitHub PR/issue workflows
   cc-jira/        -> Jira integration via MCP

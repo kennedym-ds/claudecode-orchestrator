@@ -397,9 +397,9 @@ The cc-sdlc suite uses a multi-plugin architecture where plugins are composed at
 │ core       │ standards  │ cc-confluence  │ cc-jama         │
 │            │            │                │                 │
 │ 19 agents  │ 27 skills  │ 2 agents       │ 1 agent each    │
-│ 18 skills  │ (20 lang + │ 2 skills       │ 2-3 skills each │
-│ 22 cmds    │  7 domain) │ 2 cmds         │ 2 cmds each     │
-│ 17 hooks   │            │ GitHub MCP     │ Custom MCPs     │
+│ 19 skills  │ (20 lang + │ 2 skills       │ 2-3 skills each │
+│ 24 cmds    │  7 domain) │ 2 cmds         │ 2 cmds each     │
+│ 20 hooks   │            │ GitHub MCP     │ Custom MCPs     │
 │ 6 rules    │            │                │                 │
 └────────────┴────────────┴────────────────┴─────────────────┘
 ```
