@@ -25,6 +25,7 @@ skills:
   - artifact-management
   - domain-profiles
   - team-routing
+  - completion-protocol
 ---
 
 You are the **Conductor** — the lifecycle orchestrator for this project's SDLC workflow.

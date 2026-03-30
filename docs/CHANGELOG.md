@@ -2,6 +2,47 @@
 
 All notable changes to the Claude Code Orchestrator.
 
+## [3.2.0] — 2026-03-30
+
+### Added
+- **Cross-Session Learnings** (`/learn`) — manage persistent lessons learned via `add`, `list`, `search`, `remove`, `export` subcommands; stored in `artifacts/memory/learnings.jsonl` with soft-delete
+- **Invertible Safety Commands** — `/careful` toggles enhanced confirmation mode; `/freeze <path>` restricts all edits to a directory; `/unfreeze` removes the restriction
+- **Freeze Guard Hook** (`freeze-guard.js`) — PreToolUse hook for Edit|Write that hard-blocks file edits outside frozen path (exit 2)
+- **Safety Mode Rule** (`safety-mode.md`) — behavioral guardrails when careful mode or freeze is active
+- **Session Analytics** (`/metrics`) — inline session analytics from JSONL logs; agent usage, file edits, delegation counts
+- **Analytics Scripts** — `scripts/analyze-sessions.ps1` and `scripts/analyze-sessions.sh` for terminal-based session analytics
+- 1 new skill: learnings-mgmt
+- 5 new commands: learn, careful, freeze, unfreeze, metrics
+
+### Changed
+- hooks.json: added PreToolUse matcher for Edit|Write with freeze-guard hook (22 hook entries total)
+- help.md: added Session Management and Safety Controls sections with all new commands
+- AGENTS.md, CLAUDE.md, README.md: regenerated from templates (57 skills, 37 commands, 21 hooks)
+
+## [3.1.0] — 2026-03-30
+
+### Added
+- **Completion Protocol** — standardized subagent return format with 4 statuses (DONE, DONE_WITH_CONCERNS, BLOCKED, NEEDS_CONTEXT) and structured fields (STATUS, SUMMARY, DELIVERABLES, VERIFICATION, CONCERNS, REASON, ATTEMPTED, QUESTIONS, RECOMMENDATION)
+- **Structured Escalation** — 3-attempt retry limit in delegation.md; failed agents emit BLOCKED with documented attempts
+- **Proactive Skill Routing** — `--inject-routing` / `-InjectRouting` flag on all installers appends keyword-to-command routing table into target CLAUDE.md (opt-in, idempotent)
+- **Template System** — `.tmpl` files for AGENTS.md, CLAUDE.md, README.md with `{{PLACEHOLDER}}` tokens; `gen-skill-docs.ps1` / `.sh` counts assets from plugin dirs and generates output; `--check` mode detects stale counts
+- **Version Check + Auto-Update** — `plugins/cc-sdlc-core/VERSION` file; `session-start.js` compares deployed vs source version, runs `git pull --ff-only` + redeploy when stale; deploy scripts write `.cc-sdlc-version` to target
+- 1 new skill: completion-protocol
+- `installer/templates/skill-routing.md` — 18-row routing table mapping keyword patterns to commands
+- `scripts/gen-skill-docs.ps1` and `scripts/gen-skill-docs.sh` — template generation with `--check` and `--fix` modes
+- `validate-assets.ps1` / `.sh` — template freshness check (warning-level)
+
+### Changed
+- conductor.md, implementer.md, reviewer.md, researcher.md, security-reviewer.md, planner.md: added completion-protocol skill + structured completion output sections
+- delegation.md: added escalation counter rule (3-attempt limit)
+- deploy-user.ps1/sh: added `-InjectRouting` flag + version file write
+- install.ps1/sh: added `-InjectRouting` flag
+- session-start.js: added version comparison + auto-update logic
+- AGENTS.md, CLAUDE.md, README.md: regenerated from templates (56 skills, 20 core skills)
+
+### Fixed
+- Stale skill counts across documentation (55→56 skills, 19→20 core skills)
+
 ## [3.0.0] — 2026-03-29
 
 ### Added

@@ -8,6 +8,14 @@ Subagent delegation rules:
 - Track every delegation for budget gatekeeper reporting
 - Escalate back to the user if a subagent fails twice on the same task
 
+Escalation counter:
+
+- Track attempt count per delegation objective
+- On 3rd failure, subagent must return STATUS: BLOCKED with all 3 attempts documented
+- Conductor must surface BLOCKED responses to the user at the next pause point — do not retry silently
+- Only retry a BLOCKED delegation with explicit human override
+- All subagents must use the completion-protocol skill for structured responses (STATUS, SUMMARY, DELIVERABLES, etc.)
+
 Team delegation guardrails:
 
 - Teams are opt-in: both `ORCH_TEAMS_ENABLED=true` and `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` must be set before assembling any team

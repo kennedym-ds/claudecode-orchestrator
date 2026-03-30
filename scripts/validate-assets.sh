@@ -156,6 +156,19 @@ if [ ! -f installer/templates/sdlc-config.md ]; then
   warn "sdlc-config.md template missing"
 fi
 
+# --- Template freshness ---
+log "Checking template freshness..."
+GEN_SCRIPT="$REPO_ROOT/scripts/gen-skill-docs.sh"
+if [ -f "$GEN_SCRIPT" ]; then
+  if ! bash "$GEN_SCRIPT" --check >/dev/null 2>&1; then
+    warn "Template freshness: counts may be stale - run 'scripts/gen-skill-docs.sh' to regenerate"
+  else
+    [ -n "$VERBOSE" ] && log "  ✓ templates are fresh"
+  fi
+else
+  warn "gen-skill-docs.sh not found - skipping freshness check"
+fi
+
 # --- Summary ---
 echo ""
 echo "=== Validation Summary ==="

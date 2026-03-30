@@ -14,6 +14,7 @@ DEFAULT_PLUGINS="core,standards"
 TARGET_DIR=""
 PLUGINS=""
 DRY_RUN=false
+INJECT_ROUTING=false
 
 usage() {
   cat <<EOF
@@ -46,6 +47,7 @@ while [[ $# -gt 0 ]]; do
     --target) TARGET_DIR="$2"; shift 2 ;;
     --plugins) PLUGINS="$2"; shift 2 ;;
     --dry-run) DRY_RUN=true; shift ;;
+    --inject-routing) INJECT_ROUTING=true; shift ;;
     -h|--help) usage ;;
     *) err "Unknown option: $1. Use --help for usage." ;;
   esac
@@ -223,4 +225,26 @@ if ! $DRY_RUN; then
   log "  2. Edit sdlc-config.md to set your project profile"
   log "  3. Run 'claude --agent conductor' to start orchestrated workflow"
   log "  4. Or use /conduct for ad-hoc orchestration"
+fi
+
+# Inject skill routing into CLAUDE.md if requested
+if $INJECT_ROUTING; then
+  CLAUDE_MD="$TARGET_DIR/CLAUDE.md"
+  ROUTING_TEMPLATE="$REPO_ROOT/installer/templates/skill-routing.md"
+  if [ -f "$ROUTING_TEMPLATE" ]; then
+    if [ -f "$CLAUDE_MD" ] && grep -q '## Skill Routing' "$CLAUDE_MD"; then
+      echo "Skill routing section already exists in CLAUDE.md — skipping."
+    elif $DRY_RUN; then
+      echo "[dry-run] Would append skill routing to CLAUDE.md"
+    elif [ -f "$CLAUDE_MD" ]; then
+      printf '\n' >> "$CLAUDE_MD"
+      cat "$ROUTING_TEMPLATE" >> "$CLAUDE_MD"
+      log "Appended skill routing rules to CLAUDE.md"
+    else
+      cp "$ROUTING_TEMPLATE" "$CLAUDE_MD"
+      log "Created CLAUDE.md with skill routing rules"
+    fi
+  else
+    warn "skill-routing.md template not found — skipping routing injection."
+  fi
 fi

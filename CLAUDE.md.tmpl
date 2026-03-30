@@ -1,8 +1,8 @@
 # cc-sdlc — Project Playbook
 
-> **Status:** Active · **Version:** 3.0.0
+> **Status:** Active · **Version:** {{VERSION}}
 
-Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 57 skills, 37 commands, 21 hooks, hook-driven quality gates, complexity-based routing, optional Agent Teams for parallel execution.
+Full SDLC orchestration for Claude Code. {{PLUGIN_COUNT}} modular plugins, {{AGENT_COUNT}} agents, {{SKILL_COUNT}} skills, {{COMMAND_COUNT}} commands, {{HOOK_COUNT}} hooks, hook-driven quality gates, complexity-based routing, optional Agent Teams for parallel execution.
 
 ## Persona
 
@@ -62,17 +62,17 @@ See `docs/guides/using-agent-teams.md` for full setup.
 
 ## Agents
 
-24 agents across 6 plugins. 19 core SDLC agents in `plugins/cc-sdlc-core/`, 5 integration agents in cc-github, cc-jira, cc-confluence, cc-jama.
+{{AGENT_COUNT}} agents across {{PLUGIN_COUNT}} plugins. {{CORE_AGENT_COUNT}} core SDLC agents in `plugins/cc-sdlc-core/`, 5 integration agents in cc-github, cc-jira, cc-confluence, cc-jama.
 
 **Key capabilities:** Agents support `memory: project` for persistent learning across sessions, `effort` levels (low/medium/high/max), `isolation: worktree` for git-isolated work, and scoped `hooks` in frontmatter.
 
 ## Commands
 
-37 commands across 6 plugins. Key entry points: `/conduct`, `/plan`, `/implement`, `/review`, `/research`, `/secure`, `/test`, `/architect`, `/spec`, `/estimate`, `/pair`, `/threat-model`, `/red-team`, `/incident`, `/team`.
+{{COMMAND_COUNT}} commands across {{PLUGIN_COUNT}} plugins. Key entry points: `/conduct`, `/plan`, `/implement`, `/review`, `/research`, `/secure`, `/test`, `/architect`, `/spec`, `/estimate`, `/pair`, `/threat-model`, `/red-team`, `/incident`, `/team`.
 
 ## Skills
 
-57 skills: 21 core workflow skills (including `team-routing`), 20 language coding standards, 7 domain overlays, 9 integration skills.
+{{SKILL_COUNT}} skills: {{CORE_SKILL_COUNT}} core workflow skills (including `team-routing`), {{LANG_SKILL_COUNT}} language coding standards, {{DOMAIN_SKILL_COUNT}} domain overlays, {{INTEG_SKILL_COUNT}} integration skills.
 
 ## Rules
 

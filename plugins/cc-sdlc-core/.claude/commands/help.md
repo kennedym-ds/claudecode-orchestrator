@@ -51,8 +51,15 @@ AGENT TEAMS (experimental — requires ORCH_TEAMS_ENABLED=true)
 
 SESSION MANAGEMENT
   /status             Session state, budget usage, active context
+  /metrics            Session analytics — agent usage, file edits, delegation counts
+  /learn              Manage cross-session learnings (add, list, search, remove, export)
   /audit              Quality audit of the orchestrator harness
   /compact            Strategic context compaction at milestones
+
+SAFETY CONTROLS
+  /careful            Toggle enhanced safety mode (confirm before each edit)
+  /freeze <path>      Restrict all edits to a specific directory
+  /unfreeze           Remove edit restriction
 
 COMPLEXITY ROUTING
   INSTANT    → Direct response          (trivial questions, small fixes)

@@ -12,7 +12,8 @@ param(
     [ValidateSet('copy', 'symlink')]
     [string]$Mode = 'copy',
     [switch]$DryRun,
-    [switch]$Uninstall
+    [switch]$Uninstall,
+    [switch]$InjectRouting
 )
 
 Set-StrictMode -Version Latest
@@ -218,4 +219,47 @@ if (-not $DryRun -and $deployed.Count -gt 0) {
     [System.IO.File]::WriteAllText($Manifest, $json, (New-Object System.Text.UTF8Encoding $false))
 }
 
+# Write version file
+$versionSrc = Join-Path $RepoRoot 'plugins\cc-sdlc-core\VERSION'
+if (Test-Path $versionSrc) {
+    $versionDst = Join-Path $Target '.cc-sdlc-version'
+    if ($DryRun) {
+        Write-Host "[dry-run] Would write version to $versionDst"
+    } else {
+        Copy-Item $versionSrc $versionDst -Force
+        Write-Host "Version file written to $versionDst"
+    }
+}
+
 Write-Host "Deployed $($deployed.Count) files." -ForegroundColor Green
+
+# Inject skill routing into CLAUDE.md if requested
+if ($InjectRouting) {
+    $claudeMd = Join-Path $Target 'CLAUDE.md'
+    $routingTemplate = Join-Path $RepoRoot 'installer\templates\skill-routing.md'
+    if (Test-Path $routingTemplate) {
+        $routingContent = Get-Content $routingTemplate -Raw
+        if (Test-Path $claudeMd) {
+            $existing = Get-Content $claudeMd -Raw
+            if ($existing -match '## Skill Routing') {
+                Write-Host 'Skill routing section already exists in CLAUDE.md — skipping.' -ForegroundColor Yellow
+            } else {
+                if ($DryRun) {
+                    Write-Host '[dry-run] Would append skill routing to CLAUDE.md'
+                } else {
+                    Add-Content -Path $claudeMd -Value "`n$routingContent"
+                    Write-Host 'Appended skill routing rules to CLAUDE.md' -ForegroundColor Green
+                }
+            }
+        } else {
+            if ($DryRun) {
+                Write-Host '[dry-run] Would create CLAUDE.md with skill routing'
+            } else {
+                Set-Content -Path $claudeMd -Value $routingContent
+                Write-Host 'Created CLAUDE.md with skill routing rules' -ForegroundColor Green
+            }
+        }
+    } else {
+        Write-Host 'WARNING: skill-routing.md template not found — skipping routing injection.' -ForegroundColor Yellow
+    }
+}

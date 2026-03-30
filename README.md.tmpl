@@ -1,16 +1,16 @@
 # cc-sdlc — Full SDLC Orchestration for Claude Code
 
-Modular plugin collection for Claude Code that spans the software development lifecycle. 24 specialized agents, 57 skills, 37 commands, 21 hook scripts, hook-driven quality gates, complexity-based routing with configurable model tiers, and optional Agent Teams for parallel execution.
+Modular plugin collection for Claude Code that spans the software development lifecycle. {{AGENT_COUNT}} specialized agents, {{SKILL_COUNT}} skills, {{COMMAND_COUNT}} commands, {{HOOK_COUNT}} hook scripts, hook-driven quality gates, complexity-based routing with configurable model tiers, and optional Agent Teams for parallel execution.
 
 ## What This Is
 
 A collection of Claude Code plugins that orchestrate development workflows from spec through deployment:
 
-- **6 plugins** — core SDLC, coding standards, GitHub, Jira, Confluence, Jama
-- **24 specialized agents** — conductor, planner, architect, implementer, reviewer, threat-modeler, and more
-- **57 skills** — 20 language standards, 7 domain overlays, 21 core workflow skills, 9 integration skills
-- **37 slash commands** — `/conduct`, `/plan`, `/implement`, `/review`, `/spec`, `/threat-model`, `/team`, and more
-- **21 hook scripts** — secret detection, bash safety, deploy guard, compliance logging, team lifecycle
+- **{{PLUGIN_COUNT}} plugins** — core SDLC, coding standards, GitHub, Jira, Confluence, Jama
+- **{{AGENT_COUNT}} specialized agents** — conductor, planner, architect, implementer, reviewer, threat-modeler, and more
+- **{{SKILL_COUNT}} skills** — {{LANG_SKILL_COUNT}} language standards, {{DOMAIN_SKILL_COUNT}} domain overlays, {{CORE_SKILL_COUNT}} core workflow skills, {{INTEG_SKILL_COUNT}} integration skills
+- **{{COMMAND_COUNT}} slash commands** — `/conduct`, `/plan`, `/implement`, `/review`, `/spec`, `/threat-model`, `/team`, and more
+- **{{HOOK_COUNT}} hook scripts** — secret detection, bash safety, deploy guard, compliance logging, team lifecycle
 - **Complexity-based routing** — INSTANT → STANDARD → DEEP → ULTRADEEP
 - **3 model tiers** — Opus (judgment), Sonnet (execution), Haiku (triage)
 - **Optional Agent Teams** — parallel execution for DEEP/ULTRADEEP tasks (~7x cost, opt-in)
@@ -41,8 +41,8 @@ claude --agent conductor
 
 | Plugin | Description | Assets |
 |--------|-------------|--------|
-| **cc-sdlc-core** | SDLC orchestration engine | 19 agents, 21 skills, 29 commands, 6 rules, 21 hooks |
-| **cc-sdlc-standards** | Universal coding standards | 20 language skills + 7 domain overlays |
+| **cc-sdlc-core** | SDLC orchestration engine | {{CORE_AGENT_COUNT}} agents, {{CORE_SKILL_COUNT}} skills, {{CORE_COMMAND_COUNT}} commands, 6 rules, {{HOOK_COUNT}} hooks |
+| **cc-sdlc-standards** | Universal coding standards | {{LANG_SKILL_COUNT}} language skills + {{DOMAIN_SKILL_COUNT}} domain overlays |
 | **cc-github** | GitHub integration | 2 agents, 2 commands, 2 skills + GitHub MCP |
 | **cc-jira** | Jira integration | 1 agent, 2 commands, 2 skills + Jira MCP |
 | **cc-confluence** | Confluence integration | 1 agent, 2 commands, 3 skills + Confluence MCP |
@@ -50,7 +50,7 @@ claude --agent conductor
 
 Install individually: `--plugins core,github` or all: `--plugins all`
 
-## Agents (24)
+## Agents ({{AGENT_COUNT}})
 
 ### Core SDLC
 | Agent | Model | Purpose |
@@ -84,7 +84,7 @@ Install individually: `--plugins core,github` or all: `--plugins all`
 | confluence-sync | cc-confluence | Confluence page publish and search |
 | jama-sync | cc-jama | Jama requirements tracing |
 
-## Commands (37)
+## Commands ({{COMMAND_COUNT}})
 
 | Command | Purpose |
 |---------|---------|
@@ -145,17 +145,17 @@ Each skill uses severity-tiered rules: **ERROR** (blocks merge) → **WARNING** 
 
 ```
 .claude-plugin/
-  marketplace.json          → Plugin catalog (6 plugins)
+  marketplace.json          → Plugin catalog ({{PLUGIN_COUNT}} plugins)
 plugins/
   cc-sdlc-core/             → Main SDLC engine
-    .claude/agents/          → 19 agents
-    .claude/skills/          → 21 skills
-    .claude/commands/        → 29 commands
+    .claude/agents/          → {{CORE_AGENT_COUNT}} agents
+    .claude/skills/          → {{CORE_SKILL_COUNT}} skills
+    .claude/commands/        → {{CORE_COMMAND_COUNT}} commands
     .claude/rules/           → 6 guardrails
     .claude/teams/           → 3 team definitions
-    hooks/                   → 21 hook scripts
+    hooks/                   → {{HOOK_COUNT}} hook scripts
   cc-sdlc-standards/         → Coding standards
-    .claude/skills/          → 20 languages + 7 domains
+    .claude/skills/          → {{LANG_SKILL_COUNT}} languages + {{DOMAIN_SKILL_COUNT}} domains
   cc-github/                 → GitHub integration
   cc-jira/                   → Jira integration
   cc-confluence/             → Confluence integration

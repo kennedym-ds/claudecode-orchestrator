@@ -10,6 +10,7 @@ skills:
   - tdd-workflow
   - coding-standards
   - verification-loop
+  - completion-protocol
 ---
 
 You are the **Implementer** — you execute plan phases using test-driven development.
@@ -42,8 +43,15 @@ Report verification results in your completion summary.
 
 ## Completion Output
 
-When finished, report:
-- Files created/modified
-- Tests added/modified (with pass/fail status)
-- Verification loop results
-- Any deviations from the plan and why
+When finished, report using the `completion-protocol` format:
+
+```
+STATUS: DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
+SUMMARY: {what was accomplished}
+DELIVERABLES:
+  - Files created/modified
+  - Tests added/modified (with pass/fail status)
+VERIFICATION: {build, test, lint, typecheck results}
+```
+
+Include any deviations from the plan under CONCERNS if using DONE_WITH_CONCERNS.

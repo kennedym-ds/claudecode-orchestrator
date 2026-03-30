@@ -9,6 +9,7 @@ TARGET="$HOME/.claude"
 MODE="copy"
 DRY_RUN=false
 UNINSTALL=false
+INJECT_ROUTING=false
 
 usage() {
   echo "Usage: $0 [--mode symlink|copy] [--dry-run] [--uninstall]"
@@ -20,6 +21,7 @@ while [[ $# -gt 0 ]]; do
     --mode) MODE="$2"; shift 2 ;;
     --dry-run) DRY_RUN=true; shift ;;
     --uninstall) UNINSTALL=true; shift ;;
+    --inject-routing) INJECT_ROUTING=true; shift ;;
     *) usage ;;
   esac
 done
@@ -244,3 +246,37 @@ if ! $DRY_RUN; then
 fi
 
 echo "Deployed ${#DEPLOYED[@]} files."
+
+# Write version file
+VERSION_SRC="$REPO_ROOT/plugins/cc-sdlc-core/VERSION"
+if [ -f "$VERSION_SRC" ]; then
+  VERSION_DST="$TARGET/.cc-sdlc-version"
+  if $DRY_RUN; then
+    echo "[dry-run] Would write version to $VERSION_DST"
+  else
+    cp "$VERSION_SRC" "$VERSION_DST"
+    echo "Version file written to $VERSION_DST"
+  fi
+fi
+
+# Inject skill routing into CLAUDE.md if requested
+if $INJECT_ROUTING; then
+  CLAUDE_MD="$TARGET/CLAUDE.md"
+  ROUTING_TEMPLATE="$REPO_ROOT/installer/templates/skill-routing.md"
+  if [ -f "$ROUTING_TEMPLATE" ]; then
+    if [ -f "$CLAUDE_MD" ] && grep -q '## Skill Routing' "$CLAUDE_MD"; then
+      echo "Skill routing section already exists in CLAUDE.md — skipping."
+    elif $DRY_RUN; then
+      echo "[dry-run] Would append skill routing to CLAUDE.md"
+    elif [ -f "$CLAUDE_MD" ]; then
+      printf '\n' >> "$CLAUDE_MD"
+      cat "$ROUTING_TEMPLATE" >> "$CLAUDE_MD"
+      echo "Appended skill routing rules to CLAUDE.md"
+    else
+      cp "$ROUTING_TEMPLATE" "$CLAUDE_MD"
+      echo "Created CLAUDE.md with skill routing rules"
+    fi
+  else
+    echo "WARNING: skill-routing.md template not found — skipping routing injection."
+  fi
+fi

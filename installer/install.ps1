@@ -19,7 +19,8 @@
 param(
     [string]$TargetPath = (Get-Location).Path,
     [string]$Plugins = 'core,standards',
-    [switch]$DryRun
+    [switch]$DryRun,
+    [switch]$InjectRouting
 )
 
 Set-StrictMode -Version Latest
@@ -196,4 +197,35 @@ if (-not $DryRun) {
     Write-Log "  2. Edit sdlc-config.md to set your project profile"
     Write-Log "  3. Run 'claude --agent conductor' to start orchestrated workflow"
     Write-Log "  4. Or use /conduct for ad-hoc orchestration"
+}
+
+# Inject skill routing into CLAUDE.md if requested
+if ($InjectRouting) {
+    $claudeMd = Join-Path $TargetPath 'CLAUDE.md'
+    $routingTemplate = Join-Path $RepoRoot 'installer\templates\skill-routing.md'
+    if (Test-Path $routingTemplate) {
+        $routingContent = Get-Content $routingTemplate -Raw
+        if (Test-Path $claudeMd) {
+            $existing = Get-Content $claudeMd -Raw
+            if ($existing -match '## Skill Routing') {
+                Write-Host 'Skill routing section already exists in CLAUDE.md — skipping.' -ForegroundColor Yellow
+            } else {
+                if ($DryRun) {
+                    Write-Host '[dry-run] Would append skill routing to CLAUDE.md'
+                } else {
+                    Add-Content -Path $claudeMd -Value "`n$routingContent"
+                    Write-Log 'Appended skill routing rules to CLAUDE.md'
+                }
+            }
+        } else {
+            if ($DryRun) {
+                Write-Host '[dry-run] Would create CLAUDE.md with skill routing'
+            } else {
+                Set-Content -Path $claudeMd -Value $routingContent
+                Write-Log 'Created CLAUDE.md with skill routing rules'
+            }
+        }
+    } else {
+        Write-Warn 'skill-routing.md template not found — skipping routing injection.'
+    }
 }

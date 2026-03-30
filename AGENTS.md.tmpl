@@ -1,9 +1,9 @@
 # cc-sdlc — Project Playbook
 
 > **Status:** Active
-> **Version:** 3.0.0
+> **Version:** {{VERSION}}
 
-Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 57 skills, 37 commands, 21 hooks, hook-driven quality gates, complexity-based routing, optional Agent Teams for parallel execution.
+Full SDLC orchestration for Claude Code. {{PLUGIN_COUNT}} modular plugins, {{AGENT_COUNT}} agents, {{SKILL_COUNT}} skills, {{COMMAND_COUNT}} commands, {{HOOK_COUNT}} hooks, hook-driven quality gates, complexity-based routing, optional Agent Teams for parallel execution.
 
 ---
 
@@ -13,8 +13,8 @@ Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 57 skills
 .claude-plugin/
   marketplace.json        → Plugin catalog (6 plugins)
 plugins/
-  cc-sdlc-core/           → Orchestration engine (19 agents, 21 skills, 29 commands, 21 hooks)
-  cc-sdlc-standards/      → 20 language + 7 domain coding standards
+  cc-sdlc-core/           → Orchestration engine ({{CORE_AGENT_COUNT}} agents, {{CORE_SKILL_COUNT}} skills, {{CORE_COMMAND_COUNT}} commands, {{HOOK_COUNT}} hooks)
+  cc-sdlc-standards/      → {{LANG_SKILL_COUNT}} language + {{DOMAIN_SKILL_COUNT}} domain coding standards
   cc-github/              → GitHub PR/issue workflows via MCP
   cc-jira/                → Jira integration via MCP
   cc-confluence/          → Confluence integration via MCP
@@ -80,7 +80,7 @@ Model selection is tier-based and fully configurable. Three tiers map to task co
    - `settings-teams-enabled.json` — Standard models, teams enabled (explicit `--team` flag)
    - `settings-teams-premium.json` — Premium models, teams enabled with auto-routing
 
-## Agent Roster (24 Agents)
+## Agent Roster ({{AGENT_COUNT}} Agents)
 
 ### Core SDLC (19)
 

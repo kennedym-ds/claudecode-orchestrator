@@ -160,6 +160,20 @@ if (-not (Test-Path 'installer\templates\sdlc-config.md')) {
     Write-Wrn "sdlc-config.md template missing"
 }
 
+# --- Template freshness ---
+Write-Log "Checking template freshness..."
+$genScript = Join-Path $RepoRoot "scripts\gen-skill-docs.ps1"
+if (Test-Path $genScript) {
+    & powershell -File $genScript -Check 2>&1 | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Wrn "Template freshness: counts may be stale - run 'scripts/gen-skill-docs.ps1' to regenerate"
+    } elseif ($ShowDetails) {
+        Write-Log "  OK templates are fresh"
+    }
+} else {
+    Write-Wrn "gen-skill-docs.ps1 not found - skipping freshness check"
+}
+
 # --- Summary ---
 Write-Host ""
 Write-Host "=== Validation Summary ==="
