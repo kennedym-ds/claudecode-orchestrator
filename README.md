@@ -1,6 +1,6 @@
 # cc-sdlc — Full SDLC Orchestration for Claude Code
 
-Modular plugin collection for Claude Code that spans the software development lifecycle. 24 specialized agents, 54 skills, 30 commands, hook-driven quality gates, and complexity-based routing with configurable model tiers.
+Modular plugin collection for Claude Code that spans the software development lifecycle. 24 specialized agents, 55 skills, 32 commands, 20 hook scripts, hook-driven quality gates, complexity-based routing with configurable model tiers, and optional Agent Teams for parallel execution.
 
 ## What This Is
 
@@ -8,11 +8,12 @@ A collection of Claude Code plugins that orchestrate development workflows from 
 
 - **6 plugins** — core SDLC, coding standards, GitHub, Jira, Confluence, Jama
 - **24 specialized agents** — conductor, planner, architect, implementer, reviewer, threat-modeler, and more
-- **54 skills** — 20 language standards, 7 domain overlays, 18 core workflow skills, 9 integration skills
-- **30 slash commands** — `/conduct`, `/plan`, `/implement`, `/review`, `/spec`, `/threat-model`, and more
-- **17 hook scripts** — secret detection, bash safety, deploy guard, compliance logging
+- **55 skills** — 20 language standards, 7 domain overlays, 19 core workflow skills, 9 integration skills
+- **32 slash commands** — `/conduct`, `/plan`, `/implement`, `/review`, `/spec`, `/threat-model`, `/team`, and more
+- **20 hook scripts** — secret detection, bash safety, deploy guard, compliance logging, team lifecycle
 - **Complexity-based routing** — INSTANT → STANDARD → DEEP → ULTRADEEP
 - **3 model tiers** — Opus (judgment), Sonnet (execution), Haiku (triage)
+- **Optional Agent Teams** — parallel execution for DEEP/ULTRADEEP tasks (~7x cost, opt-in)
 
 ## Quick Start
 
@@ -40,7 +41,7 @@ claude --agent conductor
 
 | Plugin | Description | Assets |
 |--------|-------------|--------|
-| **cc-sdlc-core** | SDLC orchestration engine | 19 agents, 18 skills, 22 commands, 6 rules, 17 hooks |
+| **cc-sdlc-core** | SDLC orchestration engine | 19 agents, 19 skills, 24 commands, 6 rules, 20 hooks |
 | **cc-sdlc-standards** | Universal coding standards | 20 language skills + 7 domain overlays |
 | **cc-github** | GitHub integration | 2 agents, 2 commands, 2 skills + GitHub MCP |
 | **cc-jira** | Jira integration | 1 agent, 2 commands, 2 skills + Jira MCP |
@@ -83,7 +84,7 @@ Install individually: `--plugins core,github` or all: `--plugins all`
 | confluence-sync | cc-confluence | Confluence page publish and search |
 | jama-sync | cc-jama | Jama requirements tracing |
 
-## Commands (30)
+## Commands (32)
 
 | Command | Purpose |
 |---------|---------|
@@ -117,6 +118,8 @@ Install individually: `--plugins core,github` or all: `--plugins all`
 | `/confluence-search` | Confluence search |
 | `/jama-context` | Jama requirements context |
 | `/jama-trace` | Jama traceability |
+| `/help` | Command reference and quick-start guide |
+| `/team` | Agent team management (list, assemble, status, cancel) |
 
 ## Model Tiers
 
@@ -146,10 +149,11 @@ Each skill uses severity-tiered rules: **ERROR** (blocks merge) → **WARNING** 
 plugins/
   cc-sdlc-core/             → Main SDLC engine
     .claude/agents/          → 19 agents
-    .claude/skills/          → 18 skills
-    .claude/commands/        → 22 commands
+    .claude/skills/          → 19 skills
+    .claude/commands/        → 24 commands
     .claude/rules/           → 6 guardrails
-    hooks/                   → 17 hook scripts
+    .claude/teams/           → 3 team definitions
+    hooks/                   → 20 hook scripts
   cc-sdlc-standards/         → Coding standards
     .claude/skills/          → 20 languages + 7 domains
   cc-github/                 → GitHub integration
@@ -167,6 +171,7 @@ docs/                        → Guides + templates
 - [Model Configuration](docs/guides/model-configuration.md)
 - [Creating Agents](docs/guides/creating-agents.md)
 - [Creating Skills](docs/guides/creating-skills.md)
+- [Using Agent Teams](docs/guides/using-agent-teams.md)
 - [Changelog](docs/CHANGELOG.md)
 
 ## Validation

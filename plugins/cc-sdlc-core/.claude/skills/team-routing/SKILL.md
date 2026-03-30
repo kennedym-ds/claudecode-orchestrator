@@ -63,7 +63,8 @@ For implement-team, also display the module partition plan and require confirmat
   "completedTaskCount": 0,
   "status": "assembling",
   "teammates": ["{role-1}", "{role-2}", ...],
-  "taskIds": []
+  "taskIds": [],
+  "completedTaskIds": []
 }
 ```
 

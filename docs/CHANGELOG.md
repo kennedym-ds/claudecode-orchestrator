@@ -2,6 +2,32 @@
 
 All notable changes to the Claude Code Orchestrator.
 
+## [3.0.0] — 2026-03-29
+
+### Added
+- **Agent Teams** — optional parallel execution for DEEP/ULTRADEEP tasks (~7x cost, opt-in)
+- 3 team definitions: review-team (trilateral review), research-team (parallel research), implement-team (worktree-isolated)
+- 3 hook scripts: task-created.js (validation + budget gate), task-completed.js (state tracking + synthesis), teammate-idle.js (advisory logging)
+- 1 skill: team-routing (assembly, cost estimation, task injection, fallback decision tree)
+- 1 command: /team (list, assemble, status, cancel)
+- /help command with full reference card
+- 3 settings profiles: settings-teams-disabled.json, settings-teams-enabled.json, settings-teams-premium.json
+- 6 team env vars: ORCH_TEAMS_ENABLED, ORCH_TEAM_MAX_TASKS, ORCH_TEAM_SIZE_MAX, ORCH_TEAM_DISPLAY_MODE, ORCH_TEAM_AUTO_ROUTE, CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS
+- Guide: docs/guides/using-agent-teams.md
+
+### Changed
+- conductor.md: added team-routing skill, team assembly sequence, Agent(review-team, research-team, implement-team) tools
+- delegation.md: added team delegation guardrails
+- budget-gatekeeper SKILL.md: added team mode limits
+- delegation-routing SKILL.md: added team recommendation to /route output
+- conduct.md, route.md, help.md: updated for --team flag and team commands
+- hooks.json: added TeammateIdle, TaskCreated, TaskCompleted events
+- AGENTS.md, CLAUDE.md: updated counts (55 skills, 32 commands, 20 hooks), added Teams docs
+- installation.md: updated cc-sdlc-core counts (19 skills, 24 commands, 20 hooks)
+- Validation scripts: added teams asset checks
+- Smoke tests: added budget/premium profile checks + help command check
+- settings-budget.json, settings-premium.json: added team env vars
+
 ## [2.0.0] — 2026-03-25
 
 ### Added

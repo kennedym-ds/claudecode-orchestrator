@@ -235,7 +235,8 @@ Team state is persisted in `artifacts/sessions/team-state.json` and updated by h
   "totalTaskCount": 3,
   "completedTaskCount": 1,
   "teammates": ["reviewer", "security-reviewer", "threat-modeler"],
-  "taskIds": ["review-quality", "review-security", "review-threat"]
+  "taskIds": ["review-quality", "review-security", "review-threat"],
+  "completedTaskIds": ["review-quality"]
 }
 ```
 
@@ -245,7 +246,7 @@ Events are logged to `artifacts/sessions/team-log.jsonl`:
 
 ```jsonl
 {"event":"team_assembled","teamName":"review-team","timestamp":"..."}
-{"event":"teammate_task_complete","taskId":"review-quality","teamName":"review-team","timestamp":"..."}
+{"event":"task_completed","taskId":"review-quality","teamName":"review-team","timestamp":"..."}
 {"event":"team_complete","teamName":"review-team","timestamp":"..."}
 ```
 
@@ -278,7 +279,7 @@ Fallback is silent — the task continues with subagents. No action required.
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ORCH_TEAMS_ENABLED` | `false` | Master switch — must be `true` to enable teams |
-| `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` | `1` | CC runtime flag — must be `1` |
+| `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` | unset | CC runtime flag — must be explicitly set to `1` |
 | `ORCH_TEAM_MAX_TASKS` | `20` | Maximum tasks per team (TaskCreated hook blocks at limit) |
 | `ORCH_TEAM_SIZE_MAX` | `3` | Maximum teammates (controls research-team size) |
 | `ORCH_TEAM_DISPLAY_MODE` | `auto` | `auto` or `split-panes` (split-panes requires tmux/iTerm2) |
