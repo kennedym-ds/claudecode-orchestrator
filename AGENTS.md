@@ -1,7 +1,7 @@
 # cc-sdlc — Project Playbook
 
 > **Status:** Active
-> **Version:** 3.0.0
+> **Version:** 3.2.0
 
 Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 57 skills, 37 commands, 21 hooks, hook-driven quality gates, complexity-based routing, optional Agent Teams for parallel execution.
 

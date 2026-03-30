@@ -15,7 +15,7 @@ All notable changes to the Claude Code Orchestrator.
 - 5 new commands: learn, careful, freeze, unfreeze, metrics
 
 ### Changed
-- hooks.json: added PreToolUse matcher for Edit|Write with freeze-guard hook (22 hook entries total)
+- hooks.json: added PreToolUse matcher for Edit|Write with freeze-guard hook (21 hook scripts, 22 JSON entries)
 - help.md: added Session Management and Safety Controls sections with all new commands
 - AGENTS.md, CLAUDE.md, README.md: regenerated from templates (57 skills, 37 commands, 21 hooks)
 
