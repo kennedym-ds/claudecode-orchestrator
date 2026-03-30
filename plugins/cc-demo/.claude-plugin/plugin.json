@@ -1,0 +1,14 @@
+{
+  "name": "cc-demo",
+  "version": "1.0.0",
+  "description": "Showcase plugin — fully autonomous SDLC demo from idea to local git deploy. Runs spec-interview → plan → architect → implement → review-team → e2e → doc → deploy in {os.tmpdir()}/cc-demo. Designed for --dangerously-skip-permissions demos.",
+  "author": "kennedym-ds",
+  "license": "MIT",
+  "dependencies": ["cc-sdlc-core"],
+  "components": {
+    "agents": ".claude/agents/",
+    "skills": ".claude/skills/",
+    "commands": ".claude/commands/"
+  },
+  "hooks": "hooks/hooks.json"
+}

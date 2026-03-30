@@ -49,6 +49,8 @@ Run inside an active Claude Code session:
 | `/route <task>` | Assess complexity without executing |
 | `/status` | Session state, phase progress, budget |
 | `/compact` | Strategic context compaction |
+| `/demo [idea]` | Autonomous SDLC showcase — idea → spec → plan → implement → review → deploy |
+| `/demo-teardown` | Purge demo workspace |
 
 ### Plugin Commands
 
@@ -62,6 +64,8 @@ Run inside an active Claude Code session:
 | `/confluence-search` | cc-confluence | Search Confluence for existing docs |
 | `/jama-trace` | cc-jama | Trace requirements in Jama |
 | `/jama-context` | cc-jama | Pull Jama item details into session |
+| `/demo [idea]` | cc-demo | Autonomous SDLC showcase with cinematic narration |
+| `/demo-teardown` | cc-demo | Purge demo workspace |
 
 ## Common Patterns
 

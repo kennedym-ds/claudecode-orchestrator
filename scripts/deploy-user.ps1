@@ -65,7 +65,11 @@ if (settings.hooks) {
     if (!Array.isArray(groups)) continue;
     settings.hooks[event] = groups.filter(group => {
       const hooks = group.hooks || [];
-      return !hooks.some(h => h.command && h.command.includes(hooksDir));
+      return !hooks.some(h => {
+        if (!h.command) return false;
+        const normalized = h.command.replace(/\\/g, '/');
+        return normalized.includes(hooksDir);
+      });
     });
     if (settings.hooks[event].length === 0) delete settings.hooks[event];
   }
@@ -178,7 +182,10 @@ const absHook = (script) => {
 const orchHooks = {
   SessionStart: [{ hooks: [{ ...absHook('session-start.js'), once: true }] }],
   UserPromptSubmit: [{ hooks: [absHook('secret-detector.js')] }],
-  PreToolUse: [{ matcher: 'Bash', hooks: [absHook('pre-bash-safety.js'), absHook('deploy-guard.js')] }],
+  PreToolUse: [
+    { matcher: 'Bash', hooks: [absHook('pre-bash-safety.js'), absHook('deploy-guard.js')] },
+    { matcher: 'Edit|Write', hooks: [absHook('freeze-guard.js')] }
+  ],
   PostToolUse: [{ matcher: 'Edit|Write', hooks: [
     { ...absHook('post-edit-validate.js'), async: true },
     { ...absHook('dependency-scanner.js'), if: 'Edit(*package*.json)', async: true },
@@ -193,7 +200,10 @@ const orchHooks = {
   StopFailure: [{ hooks: [absHook('stop-failure.js')] }],
   WorktreeCreate: [{ hooks: [absHook('worktree-create.js')] }],
   WorktreeRemove: [{ hooks: [absHook('worktree-remove.js')] }],
-  SessionEnd: [{ hooks: [absHook('session-end.js')] }]
+  SessionEnd: [{ hooks: [absHook('session-end.js')] }],
+  TeammateIdle: [{ hooks: [absHook('teammate-idle.js')] }],
+  TaskCreated: [{ hooks: [absHook('task-created.js')] }],
+  TaskCompleted: [{ hooks: [{ ...absHook('task-completed.js'), async: true }] }]
 };
 
 // Merge: preserve user hooks, replace orchestrator hooks (identified by hooksDir in command)
@@ -202,7 +212,11 @@ for (const [event, orchGroups] of Object.entries(orchHooks)) {
   const existing = settings.hooks[event] || [];
   const userGroups = existing.filter(group => {
     const hooks = group.hooks || [];
-    return !hooks.some(h => h.command && h.command.includes(hooksDir));
+    return !hooks.some(h => {
+      if (!h.command) return false;
+      const normalized = h.command.replace(/\\/g, '/');
+      return normalized.includes(hooksDir);
+    });
   });
   settings.hooks[event] = [...userGroups, ...orchGroups];
 }

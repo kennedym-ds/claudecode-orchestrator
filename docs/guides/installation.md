@@ -213,6 +213,7 @@ Choose which plugins to install based on your needs:
 | **cc-jira** | `jira` | Sprint planning, story generation, Jira MCP | If using Jira |
 | **cc-confluence** | `confluence` | Knowledge publishing, search, Confluence MCP | If using Confluence |
 | **cc-jama** | `jama` | Requirements tracing, test coverage, Jama MCP | If using Jama Connect |
+| **cc-demo** | `demo` | Autonomous SDLC showcase, preset mode, cinematic narration | For presentations/demos |
 
 ### Common combinations
 

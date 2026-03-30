@@ -1,0 +1,83 @@
+{
+  "preset": "react-graphs",
+  "title": "React Interactive Graphing Platform",
+  "slug": "graph-board",
+  "description": "Simulated 5-turn spec interview for the GraphBoard preset. Printed by demo-conductor in --preset mode to give the audience a realistic interview walkthrough without any typing required.",
+  "turns": [
+    {
+      "role": "interviewer",
+      "label": "spec-interviewer",
+      "turn": 1,
+      "heading": "TURN 1 — IDEA CAPTURE",
+      "text": "What are you building? Give me the core idea in a sentence or two — don't worry about details yet.",
+      "pause_before_ms": 400
+    },
+    {
+      "role": "user",
+      "label": "you",
+      "turn": 1,
+      "text": "An interactive graphing platform in React — a live dashboard that shows four different chart types side by side, all updating in real time with simulated data. Users should be able to configure each chart individually and export any of them as a PNG.",
+      "pause_before_ms": 900
+    },
+    {
+      "role": "interviewer",
+      "label": "spec-interviewer",
+      "turn": 2,
+      "heading": "TURN 2 — SCOPE LOCK",
+      "text": "Good. Let's lock the scope. What's explicitly in and out of this build?",
+      "pause_before_ms": 500
+    },
+    {
+      "role": "user",
+      "label": "you",
+      "turn": 2,
+      "text": "In scope: line chart, bar chart, pie or donut, and scatter plot. A data simulator that ticks every second and drives all four charts. A per-chart settings panel — title, colour, update speed, pause toggle. Light and dark theme in the header. PNG export per chart. Out of scope: any real backend, user accounts, saved dashboards, CSV export, or mobile layout — desktop only.",
+      "pause_before_ms": 1100
+    },
+    {
+      "role": "interviewer",
+      "label": "spec-interviewer",
+      "turn": 3,
+      "heading": "TURN 3 — BEHAVIOUR WALKTHROUGH",
+      "text": "Walk me through the main user flow — what does someone actually do from the moment the app loads?",
+      "pause_before_ms": 500
+    },
+    {
+      "role": "user",
+      "label": "you",
+      "turn": 3,
+      "text": "They land on the dashboard — four charts already live and ticking. The header has the app title, a light/dark toggle, and a version badge. Each chart panel has a settings gear icon and a download icon. Clicking the gear opens a slide-in drawer from the right with controls for title, colour preset, speed multiplier, and a pause/resume button. Changes apply instantly. Clicking download triggers html2canvas, grabs the panel at double resolution, and saves a PNG named after the chart title and timestamp.",
+      "pause_before_ms": 1300
+    },
+    {
+      "role": "interviewer",
+      "label": "spec-interviewer",
+      "turn": 4,
+      "heading": "TURN 4 — RISK CHECK",
+      "text": "What are the biggest technical risks — things that could trip up implementation or make the demo look bad?",
+      "pause_before_ms": 500
+    },
+    {
+      "role": "user",
+      "label": "you",
+      "turn": 4,
+      "text": "Performance is the main one — four charts re-rendering every second could cause frame drops if we're not careful with React.memo and useMemo. The PNG export is another: html2canvas can choke on SVG elements inside Recharts, so we may need to be intentional about keeping charts rasterisable. And theme switching needs to feel instant — CSS custom properties on the root element is the right move there so we're not re-rendering anything.",
+      "pause_before_ms": 1000
+    },
+    {
+      "role": "interviewer",
+      "label": "spec-interviewer",
+      "turn": 5,
+      "heading": "TURN 5 — CONFIRMATION",
+      "text": "Here's what I've captured:\n\n  Project:   GraphBoard — React Interactive Graphing Platform\n  Stack:     React 18, Vite, Recharts, CSS Modules, Vitest\n  Charts:    Line (zoom/pan) · Bar (grouped) · Pie (donut) · Scatter (bubbles)\n  Data:      Local simulator, 1 Hz default, per-chart speed control\n  Config:    Slide-in drawer — title, colour, speed, pause/resume\n  Theme:     Light/dark toggle, persisted to localStorage\n  Export:    PNG via html2canvas at 2× resolution\n  Risks:     Re-render perf → memo strategy; html2canvas + SVG; CSS vars for theme\n\n  Acceptance criteria cover: load time, config responsiveness, theme persistence,\n  export correctness, and test suite passing.\n\nDoes this spec accurately capture what you want to build?",
+      "pause_before_ms": 600
+    },
+    {
+      "role": "user",
+      "label": "you",
+      "turn": 5,
+      "text": "confirmed",
+      "pause_before_ms": 700
+    }
+  ]
+}

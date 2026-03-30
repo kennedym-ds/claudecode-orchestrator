@@ -2,7 +2,7 @@
 
 > **Status:** Active · **Version:** 3.2.0
 
-Full SDLC orchestration for Claude Code. 6 modular plugins, 24 agents, 57 skills, 37 commands, 21 hooks, hook-driven quality gates, complexity-based routing, optional Agent Teams for parallel execution.
+Full SDLC orchestration for Claude Code. 7 modular plugins, 26 agents, 59 skills, 39 commands, 25 hooks, hook-driven quality gates, complexity-based routing, optional Agent Teams for parallel execution.
 
 ## Persona
 
@@ -62,17 +62,17 @@ See `docs/guides/using-agent-teams.md` for full setup.
 
 ## Agents
 
-24 agents across 6 plugins. 19 core SDLC agents in `plugins/cc-sdlc-core/`, 5 integration agents in cc-github, cc-jira, cc-confluence, cc-jama.
+26 agents across 7 plugins. 19 core SDLC agents in `plugins/cc-sdlc-core/`, 5 integration agents in cc-github, cc-jira, cc-confluence, cc-jama, 2 demo agents in cc-demo.
 
 **Key capabilities:** Agents support `memory: project` for persistent learning across sessions, `effort` levels (low/medium/high/max), `isolation: worktree` for git-isolated work, and scoped `hooks` in frontmatter.
 
 ## Commands
 
-37 commands across 6 plugins. Key entry points: `/conduct`, `/plan`, `/implement`, `/review`, `/research`, `/secure`, `/test`, `/architect`, `/spec`, `/estimate`, `/pair`, `/threat-model`, `/red-team`, `/incident`, `/team`.
+39 commands across 7 plugins. Key entry points: `/conduct`, `/plan`, `/implement`, `/review`, `/research`, `/secure`, `/test`, `/architect`, `/spec`, `/estimate`, `/pair`, `/threat-model`, `/red-team`, `/incident`, `/team`, `/demo`.
 
 ## Skills
 
-57 skills: 21 core workflow skills (including `team-routing`), 20 language coding standards, 7 domain overlays, 9 integration skills.
+59 skills: 21 core workflow skills (including `team-routing`), 20 language coding standards, 7 domain overlays, 9 integration skills, 2 demo skills.
 
 ## Rules
 

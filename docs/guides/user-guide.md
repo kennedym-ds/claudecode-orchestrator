@@ -44,6 +44,7 @@ The conductor assesses complexity, creates a plan, delegates to specialized agen
 | Code review only | `claude --agent reviewer` → `/review src/` |
 | Research only | `claude --agent researcher` → `/research GraphQL vs REST` |
 | Architecture decision | `/conduct` or `claude --agent planner` |
+| Live SDLC demo | `claude --dangerously-skip-permissions` → `/demo` or `/demo --preset react-graphs` |
 
 ### Resuming Sessions
 
@@ -263,6 +264,7 @@ claude --agent conductor
 | **Testing** | test-architect, tdd-guide, e2e-tester | Test strategy and writing |
 | **Support** | researcher, doc-updater, deploy-engineer, incident-responder | Research, docs, ops |
 | **Integration** | github-pr, github-issue, jira-sync, confluence-sync, jama-sync | External tools |
+| **Demo** | demo-conductor, spec-interviewer | Autonomous SDLC showcase |
 
 ### Direct Agent Access
 

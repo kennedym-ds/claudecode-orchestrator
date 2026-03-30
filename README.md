@@ -1,16 +1,16 @@
 # cc-sdlc — Full SDLC Orchestration for Claude Code
 
-Modular plugin collection for Claude Code that spans the software development lifecycle. 24 specialized agents, 57 skills, 37 commands, 21 hook scripts, hook-driven quality gates, complexity-based routing with configurable model tiers, and optional Agent Teams for parallel execution.
+Modular plugin collection for Claude Code that spans the software development lifecycle. 26 specialized agents, 59 skills, 39 commands, 25 hook scripts, hook-driven quality gates, complexity-based routing with configurable model tiers, and optional Agent Teams for parallel execution.
 
 ## What This Is
 
 A collection of Claude Code plugins that orchestrate development workflows from spec through deployment:
 
-- **6 plugins** — core SDLC, coding standards, GitHub, Jira, Confluence, Jama
-- **24 specialized agents** — conductor, planner, architect, implementer, reviewer, threat-modeler, and more
-- **57 skills** — 20 language standards, 7 domain overlays, 21 core workflow skills, 9 integration skills
-- **37 slash commands** — `/conduct`, `/plan`, `/implement`, `/review`, `/spec`, `/threat-model`, `/team`, and more
-- **21 hook scripts** — secret detection, bash safety, deploy guard, compliance logging, team lifecycle
+- **7 plugins** — core SDLC, coding standards, GitHub, Jira, Confluence, Jama, demo showcase
+- **26 specialized agents** — conductor, planner, architect, implementer, reviewer, threat-modeler, and more
+- **59 skills** — 20 language standards, 7 domain overlays, 21 core workflow skills, 9 integration skills, 2 demo skills
+- **39 slash commands** — `/conduct`, `/plan`, `/implement`, `/review`, `/spec`, `/threat-model`, `/team`, `/demo`, and more
+- **25 hook scripts** — secret detection, bash safety, deploy guard, compliance logging, team lifecycle, demo narration
 - **Complexity-based routing** — INSTANT → STANDARD → DEEP → ULTRADEEP
 - **3 model tiers** — Opus (judgment), Sonnet (execution), Haiku (triage)
 - **Optional Agent Teams** — parallel execution for DEEP/ULTRADEEP tasks (~7x cost, opt-in)
@@ -47,10 +47,11 @@ claude --agent conductor
 | **cc-jira** | Jira integration | 1 agent, 2 commands, 2 skills + Jira MCP |
 | **cc-confluence** | Confluence integration | 1 agent, 2 commands, 3 skills + Confluence MCP |
 | **cc-jama** | Jama integration | 1 agent, 2 commands, 2 skills + Jama MCP |
+| **cc-demo** | Autonomous SDLC showcase | 2 agents, 2 skills, 2 commands, 4 hooks — preset mode, cinematic narration |
 
 Install individually: `--plugins core,github` or all: `--plugins all`
 
-## Agents (24)
+## Agents (26)
 
 ### Core SDLC
 | Agent | Model | Purpose |
@@ -84,7 +85,13 @@ Install individually: `--plugins core,github` or all: `--plugins all`
 | confluence-sync | cc-confluence | Confluence page publish and search |
 | jama-sync | cc-jama | Jama requirements tracing |
 
-## Commands (37)
+### Demo
+| Agent | Plugin | Purpose |
+|-------|--------|---------|
+| demo-conductor | cc-demo | Autonomous SDLC showcase orchestrator — drives idea → spec → deploy |
+| spec-interviewer | cc-demo | Interactive spec elicitation (5-turn interview) |
+
+## Commands (39)
 
 | Command | Purpose |
 |---------|---------|
@@ -120,6 +127,8 @@ Install individually: `--plugins core,github` or all: `--plugins all`
 | `/jama-trace` | Jama traceability |
 | `/help` | Command reference and quick-start guide |
 | `/team` | Agent team management (list, assemble, status, cancel) |
+| `/demo` | Autonomous SDLC showcase (idea → spec → plan → implement → review → deploy) |
+| `/demo-teardown` | Purge demo workspace after showcase |
 
 ## Model Tiers
 

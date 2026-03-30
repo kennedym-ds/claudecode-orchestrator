@@ -112,6 +112,7 @@ bash installer/install.sh --target /path/to/project
 | `/status` | Session state, phase progress, budget |
 | `/compact` | Strategic context compaction |
 | `/audit` | Self-check the orchestrator harness |
+| `/demo [idea]` | Autonomous SDLC showcase — idea → git commit with full narration |
 
 **Plugin commands** (requires MCP plugins):
 
@@ -183,6 +184,8 @@ docs/guides/      -> Onboarding, CLI reference, workflows, troubleshooting
 
 - [CLI Quick Reference](cli-quick-reference.md) — All commands and flags
 - [Common Workflows](common-workflows.md) — End-to-end SDLC patterns
+- [cc-demo Guide](cc-demo.md) — Autonomous SDLC showcase: idea → spec → build → commit in one command
+- [Using Agent Teams](using-agent-teams.md) — Parallel execution for DEEP/ULTRADEEP tasks
 - [Troubleshooting](troubleshooting.md) — Common issues and solutions
 - [MCP Plugin Development](mcp-plugin-development.md) — Build custom integrations
 - [Creating Agents](creating-agents.md) — Add new agents
