@@ -80,9 +80,9 @@ Behavioral guardrails in `plugins/cc-sdlc-core/.claude/rules/`. Path-scoped wher
 
 ## Hooks
 
-20 hook scripts providing deterministic automation. Zero context cost.
+21 hook scripts providing deterministic automation. Zero context cost.
 
-**Events handled:** SessionStart, UserPromptSubmit, PreToolUse (Bash — safety + deploy guard), PostToolUse (Edit|Write — lint, dependency scan, compliance log), SubagentStart, SubagentStop, PreCompact, PostCompact, Stop (summary + PR gate), StopFailure, WorktreeCreate, WorktreeRemove, SessionEnd, **TeammateIdle** (team coordination), **TaskCreated** (budget gate, field validation), **TaskCompleted** (state update, synthesis marker).
+**Events handled:** SessionStart, UserPromptSubmit, PreToolUse (Bash — safety + deploy guard; Edit|Write — freeze guard), PostToolUse (Edit|Write — lint, dependency scan, compliance log), SubagentStart, SubagentStop, PreCompact, PostCompact, Stop (summary + PR gate), StopFailure, WorktreeCreate, WorktreeRemove, SessionEnd, **TeammateIdle** (team coordination), **TaskCreated** (budget gate, field validation), **TaskCompleted** (state update, synthesis marker).
 
 Hook scripts use `${CLAUDE_PLUGIN_ROOT}` for portable path resolution and `CLAUDE_ENV_FILE` for session env vars.
 
