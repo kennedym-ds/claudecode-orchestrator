@@ -60,12 +60,13 @@ Each transition is triggered by `STATUS: DONE` or `STATUS: DONE_WITH_CONCERNS` f
 
 ## Phase Definitions
 
-### Phase 0 — SPEC_INTERVIEW
+### Pre-Pipeline — SPEC_INTERVIEW
 - **Agent:** `spec-interviewer`
 - **Mode:** interactive (5 turns max)
 - **Transition trigger:** user types 'confirmed'
 - **Output:** `$DEMO_WORKSPACE/artifacts/spec.md`
-- **Next:** PLAN (automatic, no pause)
+- **Next:** Phase 1 — PLAN (automatic, no pause)
+- **Note:** This is the interactive pre-phase. The 7 autonomous pipeline phases (1-7) begin after spec confirmation. It does not appear in the scoreboard.
 
 ### Phase 1 — PLAN
 - **Agent:** `planner`

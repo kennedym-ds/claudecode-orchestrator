@@ -51,7 +51,7 @@ The `demo-opening.js` SessionStart hook emits this automatically. demo-conductor
 
 ## Pipeline Scoreboard
 
-Print the scoreboard before each phase banner. It shows all 7 phases with status icons — audiences can see exactly where the pipeline is at a glance.
+Print the scoreboard before each phase banner. It tracks all 7 autonomous phases (spec interview is pre-pipeline) — audiences can see exactly where the pipeline is at a glance.
 
 Status icons:
 - `\x1b[92m✓\x1b[0m` — complete
@@ -62,13 +62,13 @@ Status icons:
 Format (substitute `{icon_N}` for each phase's current icon):
 
 ```
-\x1b[2m  Pipeline:\x1b[0m  {icon_1}\x1b[2mSPEC\x1b[0m  {icon_2}\x1b[2mPLAN\x1b[0m  {icon_3}\x1b[2mARCH\x1b[0m  {icon_4}\x1b[2mIMPL\x1b[0m  {icon_5}\x1b[2mREVIEW\x1b[0m  {icon_6}\x1b[2mE2E\x1b[0m  {icon_7}\x1b[2mDOC\x1b[0m  {icon_8}\x1b[2mDEPLOY\x1b[0m
+\x1b[2m  Pipeline:\x1b[0m  {icon_1}\x1b[2mPLAN\x1b[0m  {icon_2}\x1b[2mARCH\x1b[0m  {icon_3}\x1b[2mIMPL\x1b[0m  {icon_4}\x1b[2mREVIEW\x1b[0m  {icon_5}\x1b[2mE2E\x1b[0m  {icon_6}\x1b[2mDOC\x1b[0m  {icon_7}\x1b[2mDEPLOY\x1b[0m
 ```
 
-Example — at phase 4 (IMPL), phases 1-3 done:
+Example — at Phase 3 (IMPL), Phases 1-2 done:
 
 ```
-  Pipeline:  \x1b[92m✓\x1b[0m\x1b[2mSPEC\x1b[0m  \x1b[92m✓\x1b[0m\x1b[2mPLAN\x1b[0m  \x1b[92m✓\x1b[0m\x1b[2mARCH\x1b[0m  \x1b[96m⚡\x1b[0m\x1b[2mIMPL\x1b[0m  \x1b[2m·\x1b[0m\x1b[2mREVIEW\x1b[0m  \x1b[2m·\x1b[0m\x1b[2mE2E\x1b[0m  \x1b[2m·\x1b[0m\x1b[2mDOC\x1b[0m  \x1b[2m·\x1b[0m\x1b[2mDEPLOY\x1b[0m
+  Pipeline:  \x1b[92m✓\x1b[0m\x1b[2mPLAN\x1b[0m  \x1b[92m✓\x1b[0m\x1b[2mARCH\x1b[0m  \x1b[96m⚡\x1b[0m\x1b[2mIMPL\x1b[0m  \x1b[2m·\x1b[0m\x1b[2mREVIEW\x1b[0m  \x1b[2m·\x1b[0m\x1b[2mE2E\x1b[0m  \x1b[2m·\x1b[0m\x1b[2mDOC\x1b[0m  \x1b[2m·\x1b[0m\x1b[2mDEPLOY\x1b[0m
 ```
 
 ---
