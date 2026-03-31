@@ -10,14 +10,16 @@ MODE="copy"
 DRY_RUN=false
 UNINSTALL=false
 INJECT_ROUTING=false
+PLUGINS="all"
 
 usage() {
-  echo "Usage: $0 [--mode symlink|copy] [--dry-run] [--uninstall]"
+  echo "Usage: $0 [--plugins core,standards,github,jira,confluence,jama,demo,all] [--mode symlink|copy] [--dry-run] [--uninstall]"
   exit 1
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --plugins) PLUGINS="$2"; shift 2 ;;
     --mode) MODE="$2"; shift 2 ;;
     --dry-run) DRY_RUN=true; shift ;;
     --uninstall) UNINSTALL=true; shift ;;
@@ -25,6 +27,19 @@ while [[ $# -gt 0 ]]; do
     *) usage ;;
   esac
 done
+
+if [ "$PLUGINS" = "all" ]; then
+  PLUGINS="core,standards,github,jira,confluence,jama,demo"
+fi
+
+declare -A PLUGIN_MAP
+PLUGIN_MAP["core"]="cc-sdlc-core"
+PLUGIN_MAP["standards"]="cc-sdlc-standards"
+PLUGIN_MAP["github"]="cc-github"
+PLUGIN_MAP["jira"]="cc-jira"
+PLUGIN_MAP["confluence"]="cc-confluence"
+PLUGIN_MAP["jama"]="cc-jama"
+PLUGIN_MAP["demo"]="cc-demo"
 
 MANIFEST="$TARGET/.cc-sdlc-manifest.json"
 
@@ -102,6 +117,7 @@ CLEAN_SETTINGS
 fi
 
 echo "Deploying cc-sdlc assets to $TARGET (mode: $MODE)..."
+echo "Plugins: $PLUGINS"
 
 # Preflight: Node.js is required for settings merge and manifest writing
 if ! command -v node &>/dev/null; then
@@ -111,53 +127,84 @@ if ! command -v node &>/dev/null; then
 fi
 
 DEPLOYED=()
-
-# Core agents
-for f in "$REPO_ROOT"/plugins/cc-sdlc-core/.claude/agents/*.md; do
-  [ -f "$f" ] || continue
-  dst="$TARGET/agents/$(basename "$f")"
-  deploy_file "$f" "$dst"
-  DEPLOYED+=("$dst")
-done
-
-# Core skills
-for f in "$REPO_ROOT"/plugins/cc-sdlc-core/.claude/skills/*/SKILL.md; do
-  [ -f "$f" ] || continue
-  skill_name="$(basename "$(dirname "$f")")"
-  dst="$TARGET/skills/$skill_name/SKILL.md"
-  deploy_file "$f" "$dst"
-  DEPLOYED+=("$dst")
-done
-
-# Core commands
-for f in "$REPO_ROOT"/plugins/cc-sdlc-core/.claude/commands/*.md; do
-  [ -f "$f" ] || continue
-  dst="$TARGET/commands/$(basename "$f")"
-  deploy_file "$f" "$dst"
-  DEPLOYED+=("$dst")
-done
-
-# Core rules
-for f in "$REPO_ROOT"/plugins/cc-sdlc-core/.claude/rules/*.md; do
-  [ -f "$f" ] || continue
-  dst="$TARGET/rules/$(basename "$f")"
-  deploy_file "$f" "$dst"
-  DEPLOYED+=("$dst")
-done
-
-# Hook scripts — deploy to ~/.claude/hooks/scripts/
 HOOKS_TARGET="$TARGET/hooks/scripts"
 mkdir -p "$HOOKS_TARGET" 2>/dev/null || true
-for f in "$REPO_ROOT"/plugins/cc-sdlc-core/hooks/scripts/*.js; do
-  [ -f "$f" ] || continue
-  dst="$HOOKS_TARGET/$(basename "$f")"
-  deploy_file "$f" "$dst"
-  DEPLOYED+=("$dst")
+
+IFS=',' read -ra PLUGIN_LIST <<< "$PLUGINS"
+INCLUDE_CORE=false
+for p in "${PLUGIN_LIST[@]}"; do
+  p="${p// /}"
+  [ "$p" = "core" ] && INCLUDE_CORE=true
+  plugin_dir="${PLUGIN_MAP[$p]:-}"
+  if [ -z "$plugin_dir" ]; then
+    echo "WARNING: Unknown plugin '$p' (skipping)"
+    continue
+  fi
+  src="$REPO_ROOT/plugins/$plugin_dir"
+  if [ ! -d "$src" ]; then
+    echo "WARNING: Plugin source not found: $src (skipping)"
+    continue
+  fi
+
+  echo "  Installing $plugin_dir..."
+
+  # Agents
+  for f in "$src"/.claude/agents/*.md; do
+    [ -f "$f" ] || continue
+    dst="$TARGET/agents/$(basename "$f")"
+    deploy_file "$f" "$dst"
+    DEPLOYED+=("$dst")
+  done
+
+  # Skills
+  for f in "$src"/.claude/skills/*/SKILL.md; do
+    [ -f "$f" ] || continue
+    skill_name="$(basename "$(dirname "$f")")"
+    dst="$TARGET/skills/$skill_name/SKILL.md"
+    deploy_file "$f" "$dst"
+    DEPLOYED+=("$dst")
+  done
+
+  # Commands
+  for f in "$src"/.claude/commands/*.md; do
+    [ -f "$f" ] || continue
+    dst="$TARGET/commands/$(basename "$f")"
+    deploy_file "$f" "$dst"
+    DEPLOYED+=("$dst")
+  done
+
+  # Rules
+  for f in "$src"/.claude/rules/*.md; do
+    [ -f "$f" ] || continue
+    dst="$TARGET/rules/$(basename "$f")"
+    deploy_file "$f" "$dst"
+    DEPLOYED+=("$dst")
+  done
+
+  # Hook scripts — copy to ~/.claude/hooks/scripts/
+  # Core hooks are wired into settings.json; demo hooks are session-scoped (activated by /demo command)
+  for f in "$src"/hooks/scripts/*.js; do
+    [ -f "$f" ] || continue
+    dst="$HOOKS_TARGET/$(basename "$f")"
+    deploy_file "$f" "$dst"
+    DEPLOYED+=("$dst")
+  done
+
+  # Presets (e.g. cc-demo replay scenarios) — copy to ~/.claude/presets/
+  if [ -d "$src/presets" ]; then
+    while IFS= read -r -d '' f; do
+      rel="${f#$src/presets/}"
+      dst="$TARGET/presets/$rel"
+      deploy_file "$f" "$dst"
+      DEPLOYED+=("$dst")
+    done < <(find "$src/presets" -type f -print0)
+  fi
 done
 
-# Merge settings — backup existing, merge hooks with absolute paths
+# Merge settings — backup existing, wire core hooks with absolute paths
+# Only runs when core plugin is included; demo hooks are session-scoped
 SETTINGS_FILE="$TARGET/settings.json"
-if ! $DRY_RUN; then
+if ! $DRY_RUN && $INCLUDE_CORE; then
   if [ -f "$SETTINGS_FILE" ]; then
     BACKUP_DIR="$TARGET/.orchestrator-backup"
     mkdir -p "$BACKUP_DIR"

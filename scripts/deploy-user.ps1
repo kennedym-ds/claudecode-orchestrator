@@ -1,14 +1,23 @@
 <#
 .SYNOPSIS
     Deploy cc-sdlc assets to ~/.claude/ for global availability.
+.PARAMETER Plugins
+    Comma-separated plugin list. Default: all.
+    Available: core, standards, github, jira, confluence, jama, demo, all
 .PARAMETER Mode
     'copy' (default) or 'symlink'.
 .PARAMETER DryRun
     Preview without deploying.
 .PARAMETER Uninstall
     Remove previously deployed assets.
+.EXAMPLE
+    pwsh -File deploy-user.ps1
+    pwsh -File deploy-user.ps1 -Plugins "core,standards,demo"
+    pwsh -File deploy-user.ps1 -DryRun
+    pwsh -File deploy-user.ps1 -Uninstall
 #>
 param(
+    [string]$Plugins = 'all',
     [ValidateSet('copy', 'symlink')]
     [string]$Mode = 'copy',
     [switch]$DryRun,
@@ -99,7 +108,21 @@ if (Object.keys(settings).length === 0) {
     return
 }
 
+$PluginMap = @{
+    'core'       = 'cc-sdlc-core'
+    'standards'  = 'cc-sdlc-standards'
+    'github'     = 'cc-github'
+    'jira'       = 'cc-jira'
+    'confluence' = 'cc-confluence'
+    'jama'       = 'cc-jama'
+    'demo'       = 'cc-demo'
+}
+
+if ($Plugins -eq 'all') { $Plugins = 'core,standards,github,jira,confluence,jama,demo' }
+$PluginList = $Plugins -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
+
 Write-Host "Deploying cc-sdlc assets to $Target (mode: $Mode)..."
+Write-Host "Plugins: $($PluginList -join ', ')"
 
 # Preflight: Node.js is required for settings merge (avoids PS 5.1 JSON issues)
 if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
@@ -109,47 +132,75 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
 }
 
 $deployed = @()
-
-# Core agents
-Get-ChildItem "$RepoRoot\plugins\cc-sdlc-core\.claude\agents\*.md" -ErrorAction SilentlyContinue | ForEach-Object {
-    $dst = Join-Path $Target "agents\$($_.Name)"
-    Deploy-File -Src $_.FullName -Dst $dst
-    $script:deployed += $dst
-}
-
-# Core skills
-Get-ChildItem "$RepoRoot\plugins\cc-sdlc-core\.claude\skills\*\SKILL.md" -ErrorAction SilentlyContinue | ForEach-Object {
-    $skillName = $_.Directory.Name
-    $dst = Join-Path $Target "skills\$skillName\SKILL.md"
-    Deploy-File -Src $_.FullName -Dst $dst
-    $script:deployed += $dst
-}
-
-# Core commands
-Get-ChildItem "$RepoRoot\plugins\cc-sdlc-core\.claude\commands\*.md" -ErrorAction SilentlyContinue | ForEach-Object {
-    $dst = Join-Path $Target "commands\$($_.Name)"
-    Deploy-File -Src $_.FullName -Dst $dst
-    $script:deployed += $dst
-}
-
-# Core rules
-Get-ChildItem "$RepoRoot\plugins\cc-sdlc-core\.claude\rules\*.md" -ErrorAction SilentlyContinue | ForEach-Object {
-    $dst = Join-Path $Target "rules\$($_.Name)"
-    Deploy-File -Src $_.FullName -Dst $dst
-    $script:deployed += $dst
-}
-
-# Hook scripts — deploy to ~/.claude/hooks/scripts/
 $hooksTarget = Join-Path $Target 'hooks\scripts'
-Get-ChildItem "$RepoRoot\plugins\cc-sdlc-core\hooks\scripts\*.js" -ErrorAction SilentlyContinue | ForEach-Object {
-    $dst = Join-Path $hooksTarget $_.Name
-    Deploy-File -Src $_.FullName -Dst $dst
-    $script:deployed += $dst
+
+foreach ($PluginShort in $PluginList) {
+    $PluginDir = $PluginMap[$PluginShort]
+    if (-not $PluginDir) {
+        Write-Warning "Unknown plugin: $PluginShort (skipping)"
+        continue
+    }
+    $Src = Join-Path $RepoRoot "plugins\$PluginDir"
+    if (-not (Test-Path $Src)) {
+        Write-Warning "Plugin source not found: $Src (skipping)"
+        continue
+    }
+
+    Write-Host "  Installing $PluginDir..."
+
+    # Agents
+    Get-ChildItem "$Src\.claude\agents\*.md" -ErrorAction SilentlyContinue | ForEach-Object {
+        $dst = Join-Path $Target "agents\$($_.Name)"
+        Deploy-File -Src $_.FullName -Dst $dst
+        $script:deployed += $dst
+    }
+
+    # Skills
+    Get-ChildItem "$Src\.claude\skills\*\SKILL.md" -ErrorAction SilentlyContinue | ForEach-Object {
+        $skillName = $_.Directory.Name
+        $dst = Join-Path $Target "skills\$skillName\SKILL.md"
+        Deploy-File -Src $_.FullName -Dst $dst
+        $script:deployed += $dst
+    }
+
+    # Commands
+    Get-ChildItem "$Src\.claude\commands\*.md" -ErrorAction SilentlyContinue | ForEach-Object {
+        $dst = Join-Path $Target "commands\$($_.Name)"
+        Deploy-File -Src $_.FullName -Dst $dst
+        $script:deployed += $dst
+    }
+
+    # Rules
+    Get-ChildItem "$Src\.claude\rules\*.md" -ErrorAction SilentlyContinue | ForEach-Object {
+        $dst = Join-Path $Target "rules\$($_.Name)"
+        Deploy-File -Src $_.FullName -Dst $dst
+        $script:deployed += $dst
+    }
+
+    # Hook scripts (core uses hooks/scripts/*.js; demo also has hooks but they are session-scoped)
+    # Core hooks are wired into settings.json; demo hooks are copied for session-level activation only
+    Get-ChildItem "$Src\hooks\scripts\*.js" -ErrorAction SilentlyContinue | ForEach-Object {
+        $dst = Join-Path $hooksTarget $_.Name
+        Deploy-File -Src $_.FullName -Dst $dst
+        $script:deployed += $dst
+    }
+
+    # Presets (e.g. cc-demo replay scenarios) — copy to ~/.claude/presets/
+    $presetsDir = Join-Path $Src 'presets'
+    if (Test-Path $presetsDir) {
+        Get-ChildItem -Path $presetsDir -Recurse -File | ForEach-Object {
+            $rel = $_.FullName.Substring($presetsDir.Length + 1)
+            $dst = Join-Path $Target "presets\$rel"
+            Deploy-File -Src $_.FullName -Dst $dst
+            $script:deployed += $dst
+        }
+    }
 }
 
-# Merge settings — backup existing, add hooks with absolute paths
+# Merge settings — backup existing, add core hooks with absolute paths
+# Only runs when core plugin is included; demo hooks are session-scoped (activated by /demo command)
 $settingsFile = Join-Path $Target 'settings.json'
-if (-not $DryRun) {
+if (-not $DryRun -and ($PluginList -contains 'core')) {
     if (Test-Path $settingsFile) {
         $backupDir = Join-Path $Target '.orchestrator-backup'
         if (-not (Test-Path $backupDir)) { New-Item -ItemType Directory -Path $backupDir -Force | Out-Null }

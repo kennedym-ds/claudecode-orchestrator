@@ -7,12 +7,13 @@
   Target project directory. Default: current directory.
 .PARAMETER Plugins
   Comma-separated plugin list. Default: core,standards.
-  Available: core, standards, github, jira, confluence, jama, all
+  Available: core, standards, github, jira, confluence, jama, demo, all
 .PARAMETER DryRun
   Preview what would be installed without making changes.
 .EXAMPLE
   pwsh -File install.ps1 -TargetPath C:\projects\myapp
   pwsh -File install.ps1 -Plugins "core,standards,github"
+  pwsh -File install.ps1 -Plugins "core,demo"
   pwsh -File install.ps1 -Plugins all -DryRun
 #>
 [CmdletBinding()]
@@ -39,11 +40,12 @@ $PluginMap = @{
     'jira'       = 'cc-jira'
     'confluence' = 'cc-confluence'
     'jama'       = 'cc-jama'
+    'demo'       = 'cc-demo'
 }
 
 # Resolve "all"
 if ($Plugins -eq 'all') {
-    $Plugins = 'core,standards,github,jira,confluence,jama'
+    $Plugins = 'core,standards,github,jira,confluence,jama,demo'
 }
 
 $PluginList = $Plugins -split ',' | ForEach-Object { $_.Trim() }
@@ -145,6 +147,25 @@ foreach ($PluginShort in $PluginList) {
     $McpDir = Join-Path $Src 'mcp'
     if (Test-Path $McpDir) {
         Get-ChildItem -Path $McpDir -Recurse -File | ForEach-Object {
+            $RelPath = $_.FullName.Substring($Src.Length + 1)
+            $DestPath = Join-Path $TargetPath $RelPath
+            $DestDir = Split-Path $DestPath -Parent
+
+            if ($DryRun) {
+                Write-Host "  [copy] $RelPath"
+            } else {
+                if (-not (Test-Path $DestDir)) {
+                    New-Item -ItemType Directory -Path $DestDir -Force | Out-Null
+                }
+                Copy-Item -Path $_.FullName -Destination $DestPath -Force
+            }
+        }
+    }
+
+    # Copy presets (e.g. cc-demo replay scenarios)
+    $PresetsDir = Join-Path $Src 'presets'
+    if (Test-Path $PresetsDir) {
+        Get-ChildItem -Path $PresetsDir -Recurse -File | ForEach-Object {
             $RelPath = $_.FullName.Substring($Src.Length + 1)
             $DestPath = Join-Path $TargetPath $RelPath
             $DestDir = Split-Path $DestPath -Parent
