@@ -2,7 +2,7 @@
 name: demo-conductor
 description: Autonomous SDLC demo orchestrator — drives idea → spec → plan → architect → implement → review → e2e → doc → deploy with cinematic narration. Zero human prompts after spec confirmation. Use only in demo sessions with --dangerously-skip-permissions.
 model: opus
-permissionMode: acceptEdits
+permissionMode: bypassPermissions
 maxTurns: 150
 memory: project
 effort: max
