@@ -216,7 +216,19 @@
       "Bash(git status)",
       "Bash(git diff*)",
       "Bash(git log*)",
-      "Agent"
+      "Agent",
+      "Write(/tmp/cc-demo/*)",
+      "Edit(/tmp/cc-demo/*)",
+      "Bash(git -C /tmp/cc-demo*)",
+      "Bash(git init /tmp/cc-demo*)",
+      "Bash(mkdir -p /tmp/cc-demo*)",
+      "Bash(cd /tmp/cc-demo*)",
+      "Bash(python*)",
+      "Bash(npm*)",
+      "Bash(npx*)",
+      "Bash(pip*)",
+      "Bash(pytest*)",
+      "Bash(node /tmp/cc-demo*)"
     ],
     "ask": [
       "Edit",
