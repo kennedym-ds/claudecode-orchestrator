@@ -352,17 +352,17 @@ else {
 
         switch ($selectedModelTier.ToLower()) {
             'budget' {
-                Set-EnvVar -Settings $settings -Key 'ORCH_MODEL_HEAVY' -Value 'claude-sonnet-4-6-20260320'
+                Set-EnvVar -Settings $settings -Key 'ANTHROPIC_DEFAULT_OPUS_MODEL' -Value 'claude-sonnet-4-6-20260320'
                 Set-EnvVar -Settings $settings -Key 'ORCH_MODEL_DEFAULT' -Value 'claude-haiku-4-5-20250315'
                 Set-EnvVar -Settings $settings -Key 'ORCH_MODEL_FAST' -Value 'claude-haiku-4-5-20250315'
             }
             'premium' {
-                Set-EnvVar -Settings $settings -Key 'ORCH_MODEL_HEAVY' -Value 'claude-opus-4-6-20260320'
+                Set-EnvVar -Settings $settings -Key 'ANTHROPIC_DEFAULT_OPUS_MODEL' -Value 'claude-opus-4-6-20260320'
                 Set-EnvVar -Settings $settings -Key 'ORCH_MODEL_DEFAULT' -Value 'claude-opus-4-6-20260320'
                 Set-EnvVar -Settings $settings -Key 'ORCH_MODEL_FAST' -Value 'claude-sonnet-4-6-20260320'
             }
             default {
-                Set-EnvVar -Settings $settings -Key 'ORCH_MODEL_HEAVY' -Value 'claude-opus-4-6-20260320'
+                Set-EnvVar -Settings $settings -Key 'ANTHROPIC_DEFAULT_OPUS_MODEL' -Value 'claude-opus-4-6-20260320'
                 Set-EnvVar -Settings $settings -Key 'ORCH_MODEL_DEFAULT' -Value 'claude-sonnet-4-6-20260320'
                 Set-EnvVar -Settings $settings -Key 'ORCH_MODEL_FAST' -Value 'claude-haiku-4-5-20250315'
             }

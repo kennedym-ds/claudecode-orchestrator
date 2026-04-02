@@ -76,7 +76,7 @@ Write-Host "Settings:"
 if (Test-Path ".claude\settings.json") {
     Test-Pass "settings.json exists"
     $settingsContent = Get-Content ".claude\settings.json" -Raw
-    if ($settingsContent -match "ORCH_MODEL_HEAVY") { Test-Pass "model tier config present" }
+    if ($settingsContent -match "ANTHROPIC_DEFAULT_OPUS_MODEL") { Test-Pass "model tier config present" }
     else { Test-Fail "model tier config missing" }
     if ($settingsContent -match "ORCH_TEAMS_ENABLED") { Test-Pass "team config present" }
     else { Test-Fail "team config missing (ORCH_TEAMS_ENABLED)" }

@@ -51,9 +51,9 @@ Model selection is tier-based and fully configurable. Three tiers map to task co
 
 | Tier | Env Variable | Default | Role |
 |------|-------------|---------|------|
-| **heavy** | `ORCH_MODEL_HEAVY` | `claude-opus-4-6-20260320` | Judgment-heavy: reviews, security, planning, orchestration |
-| **default** | `ORCH_MODEL_DEFAULT` | `claude-sonnet-4-6-20260320` | Implementation: coding, research, testing, documentation |
-| **fast** | `ORCH_MODEL_FAST` | `claude-haiku-4-5-20250315` | Lightweight: triage, routing, simple hooks, INSTANT tasks |
+| **heavy** | `ANTHROPIC_DEFAULT_OPUS_MODEL` | `claude-opus-4-6-20260320` | Judgment-heavy: reviews, security, planning, orchestration |
+| **default** | `ANTHROPIC_DEFAULT_SONNET_MODEL` | `claude-sonnet-4-6-20260320` | Implementation: coding, research, testing, documentation |
+| **fast** | `ANTHROPIC_DEFAULT_HAIKU_MODEL` | `claude-haiku-4-5-20250315` | Lightweight: triage, routing, simple hooks, INSTANT tasks |
 
 **How to customize:**
 
@@ -61,9 +61,9 @@ Model selection is tier-based and fully configurable. Three tiers map to task co
    ```json
    {
      "env": {
-       "ORCH_MODEL_HEAVY": "claude-opus-4-6-20260320",
-       "ORCH_MODEL_DEFAULT": "claude-sonnet-4-6-20260320",
-       "ORCH_MODEL_FAST": "claude-haiku-4-5-20250315"
+       "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-6-20260320",
+       "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-4-6-20260320",
+       "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-4-5-20250315"
      }
    }
    ```

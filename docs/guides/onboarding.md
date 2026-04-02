@@ -28,9 +28,9 @@
    ```json
    {
      "env": {
-       "ORCH_MODEL_HEAVY": "claude-opus-4-6-20260320",
-       "ORCH_MODEL_DEFAULT": "claude-sonnet-4-6-20260320",
-       "ORCH_MODEL_FAST": "claude-haiku-4-5-20250315"
+       "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-6-20260320",
+       "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-4-6-20260320",
+       "ANTHROPIC_DEFAULT_HAIKU_MODEL": "claude-haiku-4-5-20250315"
      }
    }
    ```
@@ -137,7 +137,7 @@ The orchestrator uses three tiers mapped to task complexity:
 | **default** | Sonnet 4.6 | Implementation, research, testing, docs |
 | **fast** | Haiku 4.5 | Triage, routing, trivial fixes |
 
-Change tiers by editing `ORCH_MODEL_HEAVY`, `ORCH_MODEL_DEFAULT`, and `ORCH_MODEL_FAST` in `.claude/settings.json` -> `env`.
+Change tiers by editing `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, and `ANTHROPIC_DEFAULT_HAIKU_MODEL` in `.claude/settings.json` -> `env`.
 
 ## Workflow Overview
 

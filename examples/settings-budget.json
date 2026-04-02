@@ -1,6 +1,6 @@
 {
   "env": {
-    "ORCH_MODEL_HEAVY": "claude-sonnet-4-6-20260320",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-sonnet-4-6-20260320",
     "ORCH_MODEL_DEFAULT": "claude-haiku-4-5-20250315",
     "ORCH_MODEL_FAST": "claude-haiku-4-5-20250315",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",

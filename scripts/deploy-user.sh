@@ -94,8 +94,8 @@ if (settings.hooks) {
   if (Object.keys(settings.hooks).length === 0) delete settings.hooks;
 }
 if (settings.env) {
-  delete settings.env.ORCH_MODEL_HEAVY;
-  delete settings.env.ORCH_MODEL_DEFAULT;
+  delete settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL;
+  delete settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL;
   delete settings.env.ORCH_MODEL_FAST;
   if (Object.keys(settings.env).length === 0) delete settings.env;
 }
@@ -226,8 +226,8 @@ if (fs.existsSync(settingsPath)) {
 
 // Ensure env block with model tiers
 if (!settings.env) settings.env = {};
-if (!settings.env.ORCH_MODEL_HEAVY) settings.env.ORCH_MODEL_HEAVY = 'claude-opus-4-6-20260320';
-if (!settings.env.ORCH_MODEL_DEFAULT) settings.env.ORCH_MODEL_DEFAULT = 'claude-sonnet-4-6-20260320';
+if (!settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL) settings.env.ANTHROPIC_DEFAULT_OPUS_MODEL = 'claude-opus-4-6-20260320';
+if (!settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL) settings.env.ANTHROPIC_DEFAULT_SONNET_MODEL = 'claude-sonnet-4-6-20260320';
 if (!settings.env.ORCH_MODEL_FAST) settings.env.ORCH_MODEL_FAST = 'claude-haiku-4-5-20250315';
 
 // Build hooks with absolute paths (quoted for paths with spaces)

@@ -8,7 +8,7 @@ The orchestrator uses a **three-tier model system** that maps model capability t
 
 | Tier | Env Variable | Default Model | Role |
 |------|-------------|---------------|------|
-| **heavy** | `ORCH_MODEL_HEAVY` | claude-opus-4-6-20260320 | Judgment-heavy: reviews, security, planning, architecture |
+| **heavy** | `ANTHROPIC_DEFAULT_OPUS_MODEL` | claude-opus-4-6-20260320 | Judgment-heavy: reviews, security, planning, architecture |
 | **default** | `ORCH_MODEL_DEFAULT` | claude-sonnet-4-6-20260320 | Execution: implementation, research, testing, documentation |
 | **fast** | `ORCH_MODEL_FAST` | claude-haiku-4-5-20250315 | Lightweight: triage, routing, INSTANT tasks, prompt hooks |
 
@@ -21,7 +21,7 @@ Edit `.claude/settings.json`:
 ```json
 {
   "env": {
-    "ORCH_MODEL_HEAVY": "claude-opus-4-6-20260320",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-6-20260320",
     "ORCH_MODEL_DEFAULT": "claude-sonnet-4-6-20260320",
     "ORCH_MODEL_FAST": "claude-haiku-4-5-20250315"
   },
@@ -90,7 +90,7 @@ When new model versions are released, update the env vars in `.claude/settings.j
 ```json
 {
   "env": {
-    "ORCH_MODEL_HEAVY": "claude-opus-5-0-20261001",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-5-0-20261001",
     "ORCH_MODEL_DEFAULT": "claude-sonnet-5-0-20261001",
     "ORCH_MODEL_FAST": "claude-haiku-5-0-20261001"
   }

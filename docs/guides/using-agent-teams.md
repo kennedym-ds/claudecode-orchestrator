@@ -79,7 +79,7 @@ cp examples/settings-teams-premium.json .claude/settings.json
 ```json
 {
   "env": {
-    "ORCH_MODEL_HEAVY": "claude-opus-4-6-20260320",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-6-20260320",
     "ORCH_MODEL_DEFAULT": "claude-sonnet-4-6-20260320",
     "ORCH_MODEL_FAST": "claude-haiku-4-5-20250315",
     "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1",

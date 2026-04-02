@@ -293,17 +293,17 @@ elif prompt_yn "Configure model tiers? (defaults are recommended)" "n"; then
 
   case "${PROFILE,,}" in
     budget)
-      set_env_var "$SETTINGS_PATH" "ORCH_MODEL_HEAVY" "claude-sonnet-4-6-20260320"
+      set_env_var "$SETTINGS_PATH" "ANTHROPIC_DEFAULT_OPUS_MODEL" "claude-sonnet-4-6-20260320"
       set_env_var "$SETTINGS_PATH" "ORCH_MODEL_DEFAULT" "claude-haiku-4-5-20250315"
       set_env_var "$SETTINGS_PATH" "ORCH_MODEL_FAST" "claude-haiku-4-5-20250315"
       ;;
     premium)
-      set_env_var "$SETTINGS_PATH" "ORCH_MODEL_HEAVY" "claude-opus-4-6-20260320"
+      set_env_var "$SETTINGS_PATH" "ANTHROPIC_DEFAULT_OPUS_MODEL" "claude-opus-4-6-20260320"
       set_env_var "$SETTINGS_PATH" "ORCH_MODEL_DEFAULT" "claude-opus-4-6-20260320"
       set_env_var "$SETTINGS_PATH" "ORCH_MODEL_FAST" "claude-sonnet-4-6-20260320"
       ;;
     *)
-      set_env_var "$SETTINGS_PATH" "ORCH_MODEL_HEAVY" "claude-opus-4-6-20260320"
+      set_env_var "$SETTINGS_PATH" "ANTHROPIC_DEFAULT_OPUS_MODEL" "claude-opus-4-6-20260320"
       set_env_var "$SETTINGS_PATH" "ORCH_MODEL_DEFAULT" "claude-sonnet-4-6-20260320"
       set_env_var "$SETTINGS_PATH" "ORCH_MODEL_FAST" "claude-haiku-4-5-20250315"
       ;;

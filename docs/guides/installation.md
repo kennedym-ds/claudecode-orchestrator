@@ -270,8 +270,8 @@ The defaults (Opus for judgment, Sonnet for execution, Haiku for triage) work we
 // .claude/settings.json
 {
   "env": {
-    "ORCH_MODEL_HEAVY": "claude-opus-4-6-20260320",
-    "ORCH_MODEL_DEFAULT": "claude-sonnet-4-6-20260320",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "claude-opus-4-6-20260320",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "claude-sonnet-4-6-20260320",
     "ORCH_MODEL_FAST": "claude-haiku-4-5-20250315"
   }
 }

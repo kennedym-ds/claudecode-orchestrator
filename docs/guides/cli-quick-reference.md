@@ -153,8 +153,8 @@ claude --resume <session-id>
 
 | Variable | Purpose | Example |
 |----------|---------|---------|
-| `ORCH_MODEL_HEAVY` | Override heavy-tier model | `claude-opus-4-6-20260320` |
-| `ORCH_MODEL_DEFAULT` | Override default-tier model | `claude-sonnet-4-6-20260320` |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL` | Override heavy-tier model | `claude-opus-4-6-20260320` |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | Override default-tier model | `claude-sonnet-4-6-20260320` |
 | `ORCH_MODEL_FAST` | Override fast-tier model | `claude-haiku-4-5-20250315` |
 | `JIRA_BASE_URL` | Jira Cloud instance URL | `https://your-domain.atlassian.net` |
 | `JIRA_USER_EMAIL` | Jira auth email | `you@company.com` |

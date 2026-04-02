@@ -83,7 +83,7 @@ AGENTS (19 core — available via /conduct or directly)
   Fast (Haiku):    req-analyst, estimator, deploy-engineer
 
 CONFIGURATION
-  Model tiers:  Edit ORCH_MODEL_HEAVY / ORCH_MODEL_DEFAULT / ORCH_MODEL_FAST in .claude/settings.json
+  Model tiers:  Edit ANTHROPIC_DEFAULT_OPUS_MODEL / ORCH_MODEL_DEFAULT / ORCH_MODEL_FAST in .claude/settings.json
   Team mode:    Set ORCH_TEAMS_ENABLED=true + CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1
   Examples:     examples/settings-standard.json, settings-teams-enabled.json
 

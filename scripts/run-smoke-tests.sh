@@ -86,7 +86,7 @@ done
 echo "Settings:"
 if [ -f ".claude/settings.json" ]; then
   test_pass "settings.json exists"
-  if grep -q "ORCH_MODEL_HEAVY" .claude/settings.json; then
+  if grep -q "ANTHROPIC_DEFAULT_OPUS_MODEL" .claude/settings.json; then
     test_pass "model tier config present"
   else
     test_fail "model tier config missing"
